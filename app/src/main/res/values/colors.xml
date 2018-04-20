@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#399370</color>
+    <color name="colorPrimaryDark">#134d48</color>
+    <color name="colorAccent">#177971</color>
+   <!-- <color name="textColor">#b0dad6</color>
+    <color name="backgroundColor">#8d9e9a</color>-->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="White">#ffffff</color>
+    <color name="Blue">#0000ff</color>
+    <color name="Red">#ff0000</color>
+    <color name="Green">#00ff00</color>
+    <color name="CenterCircleColor">#f9f7a8</color>
+    <color name="StartColor">#f9f7a8</color> <!--ecd473-->
+    <color name="EndColor">#000000</color>
+    <color name="background_material_light">#313937</color>
+    <color name="primary_text_disabled_material_light">#7d7c7c</color>
+    <color name="primary_text_default_material_light">#de9d9d9d</color>
+
+</resources>
