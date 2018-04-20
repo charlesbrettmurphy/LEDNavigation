@@ -14,6 +14,11 @@ public class BuildURL {
         url = bridgeUserUrl;
     }
 
+    public String getConnectionStatusUrl(){
+        url = url.concat("config");
+        return url;
+    }
+
     public String getLights()
 
     {

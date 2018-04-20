@@ -29,6 +29,7 @@ public class BuildJSON {
             json.put("on", false);
 
         } catch (JSONException e) {
+            Log.i("JSONException", e.toString());
 
         }
         return json;

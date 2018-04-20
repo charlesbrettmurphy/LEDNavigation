@@ -101,16 +101,16 @@ public class LEDController extends AppCompatActivity {
 
         //load the ip and user of the gateway along with the resources being accesssed
         bridgeBuilderUrl = getIntent().getStringExtra("url");
+
+        Log.i("debug1", bridgeBuilderUrl);
         if (getIntent().getStringExtra("url") != null) {
             if (bridgeBuilderUrl.contains("lights")) {
-                bridgeBuilderUrl = bridgeBuilderUrl.concat("/state");
                 getInitalLightState("state");
+                bridgeBuilderUrl = bridgeBuilderUrl.concat("/state");
             }
-
-
             if (bridgeBuilderUrl.contains("groups")) {
-                bridgeBuilderUrl = bridgeBuilderUrl.concat("/action");
                 getInitalLightState("action");
+                bridgeBuilderUrl = bridgeBuilderUrl.concat("/action");
             }
         }
 

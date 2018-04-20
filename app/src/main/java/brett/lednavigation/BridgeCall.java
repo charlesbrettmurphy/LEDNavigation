@@ -27,11 +27,14 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
 
     private HttpURLConnection urlConnection;
     private String json;
+
     @Override
     protected String doInBackground(String... params) {
         URL url;
         InputStream in;
         String response;
+        int FAST = 3000;
+        int LONG = 5000;
 
         String httpCallType = params[1]; //for readability
         Log.i("Method", httpCallType);
@@ -41,6 +44,8 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
 
         try {
             url = new URL(params[0]);
+
+
             urlConnection = (HttpURLConnection) url.openConnection();
             if (httpCallType.equals("GET")) {
                 urlConnection.setDoOutput(false);
@@ -48,7 +53,11 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
                 urlConnection.setDoOutput(true);
             }
             urlConnection.setDoInput(true);
-            urlConnection.setConnectTimeout(5000);
+            if (url.toString().contains("internetservices")) //setting fast timeout for quickTestGateway Connection
+                urlConnection.setConnectTimeout(FAST);
+            else
+                urlConnection.setConnectTimeout(LONG);  //Otherwise normal timeout
+
             urlConnection.setChunkedStreamingMode(0);
             urlConnection.setRequestProperty("Content-Type", "application/json");
             urlConnection.setRequestProperty("Accept", "application/json");

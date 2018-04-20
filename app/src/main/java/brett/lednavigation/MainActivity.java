@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import brett.lednavigation.dummy.DummyContent;
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().add(R.id.flContent, fragment).commit();
 
-
+/*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity
                 Snackbar.make(view, "This will add new lights, groups and schedules eventually", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Toast.makeText(getApplicationContext(), "This will eventually allow you to change color spaces, among other things", Toast.LENGTH_LONG).show();
             return true;
         }
 
@@ -125,20 +127,22 @@ public class MainActivity extends AppCompatActivity
             }
 
         } else if (id == R.id.nav_schedules) {
+            Toast.makeText(getApplicationContext(), "Schedule alarms and ability set lights according to weather coming soon!", Toast.LENGTH_LONG).show();
+            /*
             SchedulesFragment schedulesFragment = SchedulesFragment.newInstance(2);
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.flContent, schedulesFragment, schedulesFragment.getTag()).commit();
-
-        } else if (id == R.id.nav_manage) {
-            SplashScreen splashScreen = SplashScreen.newInstance("wtf", "fu");
+*/
+        } else if (id == R.id.nav_home) {
+            SplashScreen splashScreen = SplashScreen.newInstance(uri);
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.flContent, splashScreen, splashScreen.getTag()).commit();
         }
 
 /*
-        } else if (id == R.id.nav_share) {
+        } else if (id == R.id.nav_feedback) {
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_website) {
 
         }*/
 
@@ -148,7 +152,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override //Interface Groups Fragment item
+    @Override //Interface GroupsFragment colorButton
     public void onListFragmentInteraction(GroupsContent.GroupItem item) {
         Log.i("GroupsInterface", Integer.toString(item.id).concat(" ").concat(item.name));
         Log.i("colorButtonPressed", "");
@@ -175,7 +179,7 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    @Override //interface from SplashScreen Fragment
+    @Override //interface from SplashScreen Fragment passing ip and user for connected gateway
     public void onFragmentInteraction(String userUrl) {
         uri = userUrl;
         Log.i("Listener", userUrl);

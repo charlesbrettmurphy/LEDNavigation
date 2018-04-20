@@ -5,11 +5,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-// https://youtu.be/BUwMVIaN3Fc?t=664 good screenshot of recyclerView
 
 public class LightsContent {
 
-    private final String debugTag = "LightContent";
+
      static List<LightItem> items = new ArrayList<>();
 
     public void createItem(JSONObject lightObject, int i) {
@@ -29,6 +28,7 @@ public class LightsContent {
         boolean on;
 
         private LightItem(JSONObject lightObject, int i) {
+            final String debugTag = "LightContent";
             try {
                 id = i;
                 name = lightObject.getString("name");

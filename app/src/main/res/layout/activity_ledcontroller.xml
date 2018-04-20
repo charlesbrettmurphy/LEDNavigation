@@ -100,7 +100,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/red"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.76" />
+        app:layout_constraintVertical_bias="0.8" />
 
     <TextView
         android:id="@+id/blue"
@@ -178,7 +178,6 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:text="R:127 B:127 G:127 BR:127 ST:127"
         android:textAlignment="center"
         android:textAppearance="@android:style/TextAppearance.Material.Medium"
         android:textColor="@color/StartColor"
@@ -191,7 +190,7 @@
         android:id="@+id/colorLoopButton"
         android:layout_width="185dp"
         android:layout_height="40dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="24dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
         android:background="@android:color/transparent"
