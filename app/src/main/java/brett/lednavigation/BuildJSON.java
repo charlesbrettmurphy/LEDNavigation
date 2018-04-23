@@ -58,6 +58,18 @@ public class BuildJSON {
         }
         return json;
     }
+    public JSONObject setHueSatBri(int hue, int sat, int bri) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("hue", hue);
+            json.put("sat", sat);
+            json.put("bri", bri);
+        } catch (JSONException e) {
+            Log.i("JSONException", e.toString());
+        }
+        return json;
+    }
+
 
     public JSONObject setHueSatBriTime(int hue, int sat, int bri, int time) {
         JSONObject json = new JSONObject();

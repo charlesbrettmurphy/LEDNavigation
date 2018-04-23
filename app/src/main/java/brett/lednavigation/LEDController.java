@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import org.apache.commons.io.IOUtils;
@@ -52,6 +53,7 @@ public class LEDController extends AppCompatActivity {
     private int colorInt; //color value
     float[] hueSatBright; // array for hue sat brightness values
     final int START_COLOR = 0xfff9f7a8; //#ffecd473 0xfff9f7a8 for ui light
+    final int START_COLOR2=  0xffffffff;
     final int END_COLOR = 0x00000000; //black
     private View backgroundView; //View container for ui light animation
     static String json; //to deliver json payload
@@ -71,6 +73,13 @@ public class LEDController extends AppCompatActivity {
     Boolean lightOn;
     Boolean lightOff;
     int b = 0;
+    @Override
+    protected void onStop() {
+        super.onStop();
+        getDelegate().onStop();
+        if (isLooping)
+            colorLoop(!isLooping);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -274,9 +283,14 @@ public class LEDController extends AppCompatActivity {
                     if (!isLooping) {
                         colorLoop(true);
                         isLooping = true;
+                        Toast.makeText(LEDController.this,
+                                "Color Loop loops through hue but not saturation. The further apart R G and B are the more noticeable the effect will be",
+                                Toast.LENGTH_LONG).show();
+                        colorLoopButton.setText("Stop");
                     } else {
                         isLooping = false;
                         colorLoop(isLooping);
+                        colorLoopButton.setText("Color Loop");
                     }
                 }
 
@@ -333,6 +347,7 @@ public class LEDController extends AppCompatActivity {
     }
 
 
+
     public void colorLoop(boolean isLooping) {
         BuildJSON buildJSON = new BuildJSON();
         String json = buildJSON.setColorLoop(isLooping).toString();
@@ -344,18 +359,16 @@ public class LEDController extends AppCompatActivity {
         Log.i("builtURL: ", bridgeBuilderUrl);
         BuildJSON buildJson = new BuildJSON();
 
-        String json = buildJson.setHueSatBriTime(
+        String json = buildJson.setHueSatBri(
                 Math.round(hueSatBright[0]),
                 Math.round(hueSatBright[1]),
-                Math.round(hueSatBright[2]), time)
-                              .toString();
+                Math.round(hueSatBright[2])).toString();
         progressTextView.setText(json);
         BridgeCall bridgeCall = new BridgeCall();
-        String response = "";
         try {
-            response = bridgeCall.execute(bridgeBuilderUrl, "PUT", json).get();
+            bridgeCall.execute(bridgeBuilderUrl, "PUT", json);
         } catch (Exception e) {
-            Log.i("Response Error", e.toString());
+            progressTextView.setText("Error: " +  e.toString());
         }
         // progressTextView.setText(response); keep for debug
 
@@ -402,14 +415,14 @@ public class LEDController extends AppCompatActivity {
             hsv[2] = (float) bri / 254;
 
             int rgb = Color.HSVToColor(hsv);
-            Log.i("HSV", Float.toString(hsv[0]) + " Sat: " + Float.toString(hsv[1]) + " Bri: " + Float.toString(hsv[2]));
-            Log.i("COLOR INT", Integer.toString(rgb));
+          //  Log.i("HSV", Float.toString(hsv[0]) + " Sat: " + Float.toString(hsv[1]) + " Bri: " + Float.toString(hsv[2]));
+          //  Log.i("COLOR INT", Integer.toString(rgb));
             int red = Color.red(rgb);
             int blue = Color.blue(rgb);
             int green = Color.green(rgb);
-            Log.i("red", Integer.toString(red));
-            Log.i("blue ", Integer.toString(blue));
-            Log.i("green", Integer.toString(green));
+         //   Log.i("red", Integer.toString(red));
+          //  Log.i("blue ", Integer.toString(blue));
+           // Log.i("green", Integer.toString(green));
             redSeek.setProgress(red);
             blueSeek.setProgress(blue);
             greenSeek.setProgress(green);
@@ -506,7 +519,7 @@ public class LEDController extends AppCompatActivity {
         background.setGradientType(GradientDrawable.RADIAL_GRADIENT);
         // adjusts the radius of the animation according to how bright it is
         background.setGradientRadius(returnGradientRadius(Math.round(hueSatBright[2])));
-        background.setGradientCenter(0, 0);
+        background.setGradientCenter(0f, 0f);
         background.setShape(GradientDrawable.RECTANGLE);
         background.setColors(gradientColor);
         backgroundView.setBackground(background);

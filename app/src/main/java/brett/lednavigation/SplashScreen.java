@@ -60,7 +60,6 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "uri";
 
-
     private String gatewayURL;
     private String mParam2;
 
@@ -86,6 +85,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     Boolean mqttOn = false;
     Button rescanButton;
     int delay;
+    int[] gradientColor;
 
     //Hue variables
 
@@ -151,7 +151,6 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         statusTextView = view.findViewById(R.id.statusTextView);
-        final Button changeColor = view.findViewById(R.id.colorButton);
         final Button changeBrokerIP = view.findViewById(R.id.changeBrokerIP);
         final EditText enterGateWayIP = view.findViewById(R.id.enterGatewayIP);
         final EditText enterPort = view.findViewById(R.id.enterPort);
@@ -185,13 +184,14 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         // pictureThread.start();
         sowiloimageview.setAlpha(0f);
         sowiloimageview.animate().alpha(1f).setDuration(3000);
+        gradientColor = new int[6];
         delay = 30; // milliseconds between callbacks
         handler.postDelayed(new Runnable() {
             public void run() {
                 String hexColor = String.format("%02x%02x%02x%02x", 255, redValue, greenValue, blueValue).toUpperCase();
                 decimalColor = (int) Long.parseLong(hexColor, 16);
                 //  String log = Integer.toString(decimalColor);
-                int[] gradientColor = new int[6];
+                ;
                 gradientColor[0] = startColor;
                 gradientColor[1] = startColor;
                 gradientColor[2] = decimalColor;
@@ -217,46 +217,52 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
 
         //TODO: Find a more elegant way to code this gateway check.
         //if we already have a gateway url;
+        final CheckConnectivity checkConnectivity = new CheckConnectivity(getActivity());
+        final boolean isWifiOn = checkConnectivity.checkWifiOnAndConnected();
         if (gatewayURL != null) {
             Log.i("gatewayURL", gatewayURL);
-            boolean isConnected = quickTestGatewayConnection(gatewayURL);
-            //check that wifi is on and ping the gateway for internet services
-            if (checkWifiOnAndConnected() && isConnected) {
-                //if its a valid gateway and we have services connect to it
-                onBridgeInitialized(gatewayURL);
-                Log.i("onBridgeInitialized", "debug1");
-                statusTextView.setText("Connected");
-                hueAutoConnect.setVisibility(View.GONE);
-                bridgeIP.setVisibility(View.INVISIBLE);
-            } if (!checkWifiOnAndConnected()) {
-                //if wifi is not connected inform the user to connect and rescan
-                Log.i("in !wificheck", "debug 2");
-                statusTextView.setText("Please connect to WIFI and press Hue AutoConnect");
-                hueAutoConnect.setVisibility(View.VISIBLE);
-                changeColor.setVisibility(View.GONE);
-            } if (!isConnected){
-                Log.i("isNotConnected", "debug3");
-                //if wifi is connected but the connection test failed, try and use cache
-                String bridgeIp = getLastUsedBridgeIp();
-                if (bridgeIp == null) {
-                    //if there is no cache then start bridge discovery
-                    startBridgeDiscovery();
-                } else {
-                    //if there is, try to connect
-                    bridgeIP.setText(bridgeIp);
-                    connectToBridge(bridgeIp);
+            if (isWifiOn) {
+                boolean isConnected = quickTestGatewayConnection(gatewayURL);
+                //check that wifi is on and ping the gateway for internet services
+                if (isConnected) {
+                    //if its a valid gateway and we have services connect to it
+                    onBridgeInitialized(gatewayURL);
+                    Log.i("onBridgeInitialized", "debug1");
+                    statusTextView.setText("Connected");
+                    hueAutoConnect.setVisibility(View.GONE);
+                    bridgeIP.setVisibility(View.INVISIBLE);
+                }
+                if (!isConnected) {
+                    Log.i("isNotConnected", "debug3");
+                    //if wifi is connected but the connection test failed, try and use cache
+                    String bridgeIp = getLastUsedBridgeIp();
+                    if (bridgeIp == null) {
+                        //if there is no cache then start bridge discovery
+                        startBridgeDiscovery();
+                    } else {
+                        //if there is, try to connect
+                        connectToBridge(bridgeIp);
+                    }
                 }
             }
+            if (!isWifiOn) {
+                //if wifi is not connected inform the user to connect and rescan
+                Log.i("in !wificheck", "debug 2");
+                statusTextView.setText("1. Please Connect To A WiFi Network \n 2. Press Auto-Connect");
+                hueAutoConnect.setVisibility(View.VISIBLE);
+            }
         } else { // if gatewayURL is null, then application must have just booted and we need to do this anyway
-            if (checkWifiOnAndConnected()) {
+
+            if (isWifiOn) {
                 String bridgeIp = getLastUsedBridgeIp();
-                if (bridgeIp==null) {
+                if (bridgeIp == null) {
                     startBridgeDiscovery();
-                }else{
-                    bridgeIP.setText(bridgeIp);
+                } else {
                     connectToBridge(bridgeIp);
 
                 }
+            } else {
+                statusTextView.setText("1. Please Connect To A WiFi Network \n 2. Press Auto-Connect");
             }
 
         }
@@ -265,10 +271,10 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         hueAutoConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (checkWifiOnAndConnected()) {
+                if (checkConnectivity.checkWifiOnAndConnected()) {
                     startBridgeDiscovery();
                 } else {
-                    statusTextView.setText("Please connect to WIFI and press Hue AutoConnect");
+                    statusTextView.setText("1. Please Connect To A WiFi Network \n 2. Press Auto-Connect");
 
                 }
             }
@@ -408,21 +414,6 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         }
     }
 
-    private boolean checkWifiOnAndConnected() {
-        WifiManager wifiMgr = (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
-
-            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-
-            if (wifiInfo.getNetworkId() == -1) {
-                return false; // Not connected to an access point
-            }
-            return true; // Connected to an access point
-        } else {
-            return false; // Wi-Fi adapter is OFF
-        }
-    }
-
     /**
      * returns a modulating value for brightness between min and max.
      * brightValue is then used to calculate gradient radius for animation
@@ -448,7 +439,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     public boolean quickTestGatewayConnection(String testUrl) {
         BridgeCall bridgeCall = new BridgeCall();
         BuildURL buildURL = new BuildURL(testUrl);
-        testUrl =buildURL.getConnectionStatusUrl();
+        testUrl = buildURL.getConnectionStatusUrl();
         Log.i("quickTest", testUrl);
         try {
             String result = bridgeCall.execute(testUrl, "GET").get();
@@ -559,6 +550,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
      * The hue SDK supports multiple bridge connections at the same time,
      * but we are only using one
      */
+
     private void disconnectFromBridge() {
         if (bridge != null) {
             bridge.disconnect();
@@ -566,9 +558,11 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         }
     }
 
+
     /**
      * The callback that receives bridge connection events
      */
+
     private BridgeConnectionCallback bridgeConnectionCallback = new BridgeConnectionCallback() {
         @Override
         public void onConnectionEvent(BridgeConnection bridgeConnection, ConnectionEvent connectionEvent) {

@@ -39,15 +39,12 @@ public class GroupsContent {
                 on = state.getBoolean("any_on");
                 lights = groupObject.getJSONArray("lights");
 
-               // state = groupObject.getJSONObject("state");
+                // state = groupObject.getJSONObject("state");
             } catch (JSONException e) {
                 Log.i(debugTag, e.toString());
             }
-            Log.i(debugTag, Integer.toString(i) + name);
-
 
         }
-
 
     }
 }

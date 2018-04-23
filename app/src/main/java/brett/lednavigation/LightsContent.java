@@ -10,6 +10,10 @@ public class LightsContent {
 
 
      static List<LightItem> items = new ArrayList<>();
+     LightsContent(){
+         LightItem temp = new LightItem();
+         items.add(temp);
+     }
 
     public void createItem(JSONObject lightObject, int i) {
         LightItem temp = new LightItem(lightObject, i);
@@ -27,6 +31,7 @@ public class LightsContent {
         int hue;
         boolean on;
 
+
         private LightItem(JSONObject lightObject, int i) {
             final String debugTag = "LightContent";
             try {
@@ -38,13 +43,16 @@ public class LightsContent {
                 sat = state.getInt("sat");
                 hue = state.getInt("hue");
                 on = state.getBoolean("on");
-
             } catch (JSONException e) {
                 Log.i(debugTag, e.toString());
             }
             Log.i(debugTag, Integer.toString(i) + name);
 
 
+        }
+        private LightItem(){
+            name ="Search For New Lights";
+            id=0;
         }
 
 

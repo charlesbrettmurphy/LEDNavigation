@@ -1,6 +1,7 @@
 package brett.lednavigation;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,30 +35,39 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
         //pull values from LightsItem and populate relevant data
-        viewHolder.mId = Integer.toString(mValues.get(position).id);
-        viewHolder.mItem = mValues.get(position);
-        viewHolder.mNameView.setText(mValues.get(position).name);
-        viewHolder.onSwitch.setChecked(mValues.get(position).on);
-        viewHolder.reachable = mValues.get(position).reachable;
-        viewHolder.hueSatBriTextView.setText("Hue: ".concat(Integer.toString(mValues.get(position).hue))
-                                                     .concat(" Sat: ")
-                                                     .concat(Integer.toString(mValues.get(position).sat))
-                                                     .concat(" Bri: ")
-                                                     .concat(Integer.toString(mValues.get(position).bri)));
-        //check UI states and display available actions.
-        if (viewHolder.onSwitch.isChecked()) {
-            viewHolder.onSwitch.setText("On");
-
-        } else {
-            viewHolder.onSwitch.setText("Off");
-        }
-
-        if (!viewHolder.reachable) {
-            viewHolder.hueSatBriTextView.setText("Unreachable");
+        if (position==0){
+            viewHolder.mNameView.setText(mValues.get(position).name);
             viewHolder.onSwitch.setVisibility(View.INVISIBLE);
             viewHolder.colorButton.setVisibility(View.INVISIBLE);
+            viewHolder.hueSatBriTextView.setText("Tap to begin a search");
+
+        }else {
+
+            viewHolder.mId = Integer.toString(mValues.get(position).id);
+            viewHolder.mItem = mValues.get(position);
+            viewHolder.mNameView.setText(mValues.get(position).name);
+            viewHolder.onSwitch.setChecked(mValues.get(position).on);
+            viewHolder.reachable = mValues.get(position).reachable;
+            viewHolder.hueSatBriTextView.setText("Hue: ".concat(Integer.toString(mValues.get(position).hue))
+                                                         .concat(" Sat: ")
+                                                         .concat(Integer.toString(mValues.get(position).sat))
+                                                         .concat(" Bri: ")
+                                                         .concat(Integer.toString(mValues.get(position).bri)));
+            //check UI states and display available actions.
+            if (viewHolder.onSwitch.isChecked()) {
+                viewHolder.onSwitch.setText("On");
+
+            } else {
+                viewHolder.onSwitch.setText("Off");
+            }
+
+            if (!viewHolder.reachable) {
+                viewHolder.hueSatBriTextView.setText("Unreachable");
+                viewHolder.onSwitch.setVisibility(View.INVISIBLE);
+                viewHolder.colorButton.setVisibility(View.INVISIBLE);
+            }
         }
 
         viewHolder.colorButton.setOnClickListener(new View.OnClickListener() {
@@ -86,19 +96,19 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
         });
 
 
-        viewHolder.mNameView.setOnLongClickListener(new View.OnLongClickListener() {
+        viewHolder.mNameView.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public boolean onLongClick(View view) {
+            public void onClick(View view) {
 
                 if (null != mListener) {
 
 
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    //  mListener.onListLightsFragmentInteraction(viewHolder.mItem);
+                    mListener.onListLightsFragmentInteraction(position);
                 }
-                return true;
+
             }
         });
     }
@@ -107,6 +117,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
     public int getItemCount() {
         return mValues.size();
     }
+
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
@@ -117,6 +128,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
         public final Button colorButton;
         public LightsContent.LightItem mItem;
         public boolean reachable;
+        public boolean searchNew;
 
         public ViewHolder(View view) {
             super(view);
@@ -125,6 +137,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
             onSwitch = view.findViewById(R.id.onSwitch);
             hueSatBriTextView = view.findViewById(R.id.hueSatBriTextView);
             colorButton = view.findViewById(R.id.colorButton);
+
 
         }
 

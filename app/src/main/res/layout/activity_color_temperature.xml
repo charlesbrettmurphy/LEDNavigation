@@ -2,25 +2,14 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/EndColor"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="260dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/colorTemp"
-        app:srcCompat="@drawable/planckianlocus" />
 
     <SeekBar
         android:id="@+id/colorTempSeek"
         android:layout_width="0dp"
-        android:layout_height="30dp"
+        android:layout_height="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
@@ -34,17 +23,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/planck" />
+        app:layout_constraintTop_toBottomOf="@+id/colorTempTextView" />
 
     <TextView
-        android:id="@+id/planck"
+        android:id="@+id/colorTempTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="Color Temperature"
-        android:textAlignment="center"
+        android:textAlignment="viewStart"
         android:textAppearance="@android:style/TextAppearance.Material.Medium"
         android:textColor="@color/StartColor"
         android:textSize="18sp"
@@ -53,35 +42,24 @@
         app:layout_constraintTop_toBottomOf="@+id/brightSeek" />
 
     <TextView
-        android:id="@+id/description"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:id="@+id/brightnessTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="23dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:text="Sowilo 5 Channel LEDs: Pulling up the Spectrum"
-        android:textAlignment="center"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
-        android:textColor="@color/StartColor"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/colorTemp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
         android:ems="10"
-        android:textAlignment="center"
+        android:textAlignment="viewStart"
         android:textAppearance="@android:style/TextAppearance.Material.Medium"
         android:textColor="@color/StartColor"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/description" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.59000003" />
 
     <Button
         android:id="@+id/rgb"
@@ -96,48 +74,18 @@
         android:textColor="@color/StartColor"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/submit"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/colorTempSeek" />
-
-    <Button
-        android:id="@+id/submit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:background="@android:color/transparent"
-        android:text="SUBMIT"
-        android:textColor="@color/StartColor"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.752"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/colorTempSeek" />
-
-    <TextView
-        android:id="@+id/brightness"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Brightness"
-        android:textAlignment="center"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
-        android:textColor="@color/StartColor"
-        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        app:layout_constraintTop_toBottomOf="@+id/colorTempSeek"
+        app:layout_constraintVertical_bias="0.0" />
 
     <SeekBar
         android:id="@+id/brightSeek"
         android:layout_width="0dp"
-        android:layout_height="30dp"
+        android:layout_height="40dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:colorControlActivated="@color/StartColor"
         android:max="254"
         android:progress="127"
@@ -148,5 +96,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/brightness" />
+        app:layout_constraintTop_toBottomOf="@+id/brightnessTextView" />
 </android.support.constraint.ConstraintLayout>

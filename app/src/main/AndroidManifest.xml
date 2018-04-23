@@ -17,8 +17,8 @@
         android:theme="@style/SowiloDesignTheme">
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/SowiloDesignTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,10 +26,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ColorTemperatureActivity"/>
+        <activity android:name=".ColorTemperatureActivity" />
         <activity
             android:name=".LEDController"
             android:screenOrientation="portrait" />
+        <activity android:name=".WebSiteActivity" />
+        <activity android:name=".FeedbackActivity"></activity>
     </application>
 
 </manifest>

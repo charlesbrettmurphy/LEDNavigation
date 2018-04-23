@@ -28,6 +28,11 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
     private HttpURLConnection urlConnection;
     private String json;
 
+   // private onBridgeResponseListener listener;
+  //  public interface onBridgeResponseListener
+    // {  void onBridgeResponse(String response);
+  //  }
+
     @Override
     protected String doInBackground(String... params) {
         URL url;
@@ -105,6 +110,11 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
             urlConnection.disconnect();
         }
         return response;
+    }
+    protected void onPostExecute(String result){
+      //  listener.onBridgeResponse(result);
+
+
     }
 
 }

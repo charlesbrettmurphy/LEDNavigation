@@ -1,10 +1,10 @@
 package brett.lednavigation;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.os.CountDownTimer;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
@@ -15,8 +15,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
+
+import java.util.Timer;
 
 import brett.lednavigation.dummy.DummyContent;
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity
                            SchedulesFragment.OnListFragmentInteractionListener,
                            SplashScreen.OnFragmentInteractionListener {
     String uri = "";
+
 
     static {
         System.loadLibrary("huesdk");
@@ -106,49 +108,66 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    int lastSelectedId = -1; //to compare menu items and not reload fragments that are already loaded in content view
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        boolean hasToast = false;
+        //if the selected fragment is not in view or if its the first load then launch the appropriate fragment
+        //if the ids are equal, then the fragment is already in view so don't reload.
+        if (lastSelectedId != id || lastSelectedId == -1) {
+            if (id == R.id.nav_lights) {
+                if (!uri.isEmpty()) {
+                    LightsFragment lightsFragment = LightsFragment.newInstance(uri);
+                    FragmentManager fragmentManager = getSupportFragmentManager();
+                    fragmentManager.beginTransaction().replace(R.id.flContent, lightsFragment, lightsFragment.getTag()).commit();
+                    lastSelectedId = id;
+                }
 
-        if (id == R.id.nav_lights) {
-            if (!uri.isEmpty()) {
-                LightsFragment lightsFragment = LightsFragment.newInstance(uri);
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.flContent, lightsFragment, lightsFragment.getTag()).commit();
-            }
+            } else if (id == R.id.nav_groups) {
+                if (!uri.isEmpty()) {
+                    GroupsFragment groupsFragment = GroupsFragment.newInstance(uri);
+                    FragmentManager fragmentManager = getSupportFragmentManager();
+                    fragmentManager.beginTransaction().replace(R.id.flContent, groupsFragment, groupsFragment.getTag()).commit();
+                    lastSelectedId = id;
+                }
 
-        } else if (id == R.id.nav_groups) {
-            if (!uri.isEmpty()) {
-                GroupsFragment groupsFragment = GroupsFragment.newInstance(uri);
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.flContent, groupsFragment, groupsFragment.getTag()).commit();
-            }
-
-        } else if (id == R.id.nav_schedules) {
-            Toast.makeText(getApplicationContext(), "Schedule alarms and ability set lights according to weather coming soon!", Toast.LENGTH_LONG).show();
+            } else if (id == R.id.nav_schedules) {
+                hasToast = true;
             /*
             SchedulesFragment schedulesFragment = SchedulesFragment.newInstance(2);
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.flContent, schedulesFragment, schedulesFragment.getTag()).commit();
 */
-        } else if (id == R.id.nav_home) {
-            SplashScreen splashScreen = SplashScreen.newInstance(uri);
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.flContent, splashScreen, splashScreen.getTag()).commit();
+                lastSelectedId = id;
+            }
+
+
+            if (id == R.id.nav_home) {
+                SplashScreen splashScreen = SplashScreen.newInstance(uri);
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                fragmentManager.beginTransaction().replace(R.id.flContent, splashScreen, splashScreen.getTag()).commit();
+                lastSelectedId = id;
+            }
+            if (id == R.id.nav_feedback) {
+                Intent intent = new Intent(MainActivity.this, FeedbackActivity.class);
+                startActivity(intent);
+
+            }
+            if (id == R.id.nav_website) {
+                Uri uri = Uri.parse("https://www.sowilodesign.com");
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+            }
         }
-
-/*
-        } else if (id == R.id.nav_feedback) {
-
-        } else if (id == R.id.nav_website) {
-
-        }*/
-
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+        if (hasToast) {
+            Toast.makeText(MainActivity.this, "Schedule alarms and ability set lights according to weather coming soon!", Toast.LENGTH_LONG).show();
+        }
         return true;
     }
 
@@ -157,7 +176,7 @@ public class MainActivity extends AppCompatActivity
         Log.i("GroupsInterface", Integer.toString(item.id).concat(" ").concat(item.name));
         Log.i("colorButtonPressed", "");
         Intent intent = new Intent(MainActivity.this, LEDController.class);
-        BuildURL buildURL= new BuildURL(uri);
+        BuildURL buildURL = new BuildURL(uri);
         String url = buildURL.getGroupAttributesById(item.id);
         intent.putExtra("url", url);
         startActivity(intent);
@@ -176,7 +195,6 @@ public class MainActivity extends AppCompatActivity
             bridgeCall.execute(url, "PUT", buildJSON.setLightOff().toString());
         }
     }
-
 
 
     @Override //interface from SplashScreen Fragment passing ip and user for connected gateway
@@ -200,7 +218,7 @@ public class MainActivity extends AppCompatActivity
     public void onListLightsFragmentInteraction(LightsContent.LightItem item) {
         Log.i("colorButtonPressed", "");
         Intent intent = new Intent(MainActivity.this, LEDController.class);
-        BuildURL buildURL= new BuildURL(uri);
+        BuildURL buildURL = new BuildURL(uri);
         String url = buildURL.getLightState(item.id);
         intent.putExtra("url", url);
         startActivity(intent);
@@ -219,4 +237,25 @@ public class MainActivity extends AppCompatActivity
             bridgeCall.execute(url, "PUT", buildJSON.setLightOff().toString());
         }
     }
-}
+
+    @Override
+    public void onListLightsFragmentInteraction(int id) {
+        if (id == 0) {
+            BuildURL buildURL = new BuildURL(uri);
+            String url = buildURL.getLights();
+            BridgeCall bridgeCall = new BridgeCall();
+            bridgeCall.execute(url, "POST");
+            new CountDownTimer(40000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    Toast.makeText(getApplicationContext(), "Searching for "+(int)millisUntilFinished/1000 , Toast.LENGTH_SHORT).show();
+                }
+
+                public void onFinish() {
+                   Toast.makeText(getApplicationContext(), "Finished, please navigate home and then reload this screen", Toast.LENGTH_LONG).show();
+                }
+            }.start();
+
+            }
+        }
+    }
+

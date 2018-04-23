@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,42 +53,44 @@ public class GroupsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CheckConnectivity checkConnectivity = new CheckConnectivity(getActivity());
 
-        if (getArguments() != null) {
-            userURL = getArguments().getString(paramTag);
-            BridgeCall bridgeCall = new BridgeCall();
-            BuildURL buildURL = new BuildURL(userURL);
-            userURL = buildURL.getAllGroups();
-            try {
-                response = bridgeCall.execute(userURL, "GET").get();
-                Log.i(debugTag, response);
-            } catch (Exception e)
-            {
-                Log.i(debugTag, e.toString());
-            }
-            try {
-                JSONObject jsonReader = new JSONObject(response);
-                Log.i(debugTag, jsonReader.toString());
-                Boolean hasMoreObjects = true;
-                int i = 1;
-                while (hasMoreObjects) {
-                    if (jsonReader.has(Integer.toString(i))) {
-                        String parsedJSON = jsonReader.getJSONObject(Integer.toString(i)).toString();
-                        Log.i(debugTag, parsedJSON);
-                        groupsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
-                        Log.i(debugTag, Integer.toString(GroupsContent.items.get(i-1).id));
-                        Log.i(debugTag, GroupsContent.items.get(i-1).name);
-                        i++;
-                    } else {
-                        hasMoreObjects = false;
-                    }
+        if(checkConnectivity.checkWifiOnAndConnected()) {
+            if (getArguments() != null) {
+                userURL = getArguments().getString(paramTag);
+                BridgeCall bridgeCall = new BridgeCall();
+                BuildURL buildURL = new BuildURL(userURL);
+                userURL = buildURL.getAllGroups();
+                try {
+                    //TODO: recode this properly using an interface so its not blocking the ui thread.
+                    response = bridgeCall.execute(userURL, "GET").get();
+                    Log.i(debugTag, response);
+                } catch (Exception e) {
+                    Log.i(debugTag, e.toString());
                 }
-            } catch (JSONException e) {
-                Log.i(debugTag, e.toString());
+                try {
+                    JSONObject jsonReader = new JSONObject(response);
+                    Log.i(debugTag, jsonReader.toString());
+                    Boolean hasMoreObjects = true;
+                    int i = 1;
+                    while (hasMoreObjects) {
+                        if (jsonReader.has(Integer.toString(i))) {
+                            String parsedJSON = jsonReader.getJSONObject(Integer.toString(i)).toString();
+                            Log.i(debugTag, parsedJSON);
+                            groupsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
+                            Log.i(debugTag, Integer.toString(GroupsContent.items.get(i - 1).id));
+                            Log.i(debugTag, GroupsContent.items.get(i - 1).name);
+                            i++;
+                        } else {
+                            hasMoreObjects = false;
+                        }
+                    }
+                } catch (JSONException e) {
+                    Log.i(debugTag, e.toString());
+                }
             }
+
         }
-
-
     }
 
     @Override

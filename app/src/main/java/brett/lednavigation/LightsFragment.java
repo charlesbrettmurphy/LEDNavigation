@@ -2,6 +2,7 @@ package brett.lednavigation;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,40 +56,45 @@ public class LightsFragment extends Fragment {
         /*retrieves the url passed from SplashScreen.
           Constructs a BridgeCall to retrieve connected lights
           Parses the JSON from the HTTP Request and adds them to LightsContent
-          which will be used in RecyclerViewAdapter to create the view.*/
-
-        if (getArguments() != null) {
-            userURL = getArguments().getString(paramTag);
-            BridgeCall bridgeCall = new BridgeCall();
-            BuildURL buildURL = new BuildURL(userURL);
-            userURL = buildURL.getLights();
-            try {
-                response = bridgeCall.execute(userURL, "GET").get();
-            } catch (Exception e) {
-                Log.i(debugTag, e.toString());
-            }
-
-
-            try {
-                JSONObject jsonReader = new JSONObject(response);
-                Boolean hasMoreObjects = true;
-                int i = 1;
-                while (hasMoreObjects) {
-                    if (jsonReader.has(Integer.toString(i))) {
-                        String parsedJSON = jsonReader.getJSONObject(Integer.toString(i)).toString();
-                        lightsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
-                        Log.i(debugTag, LightsContent.items.get(i - 1).name);
-                        Log.i("State", LightsContent.items.get(i - 1).state.toString());
-                        i++;
-                    } else {
-                        hasMoreObjects = false;
-                    }
+          which will be used in RecyclerViewAdapter to update the view. Checks for connectivity first*/
+        CheckConnectivity checkConnectivity = new CheckConnectivity(getActivity());
+        if (checkConnectivity.checkWifiOnAndConnected()) {
+            if (getArguments() != null) {
+                userURL = getArguments().getString(paramTag);
+                BridgeCall bridgeCall = new BridgeCall();
+                BuildURL buildURL = new BuildURL(userURL);
+                userURL = buildURL.getLights();
+                try {
+                    //TODO: recode this is so it is using an interface and not blocking ui thread.
+                    response = bridgeCall.execute(userURL, "GET").get();
+                } catch (Exception e) {
+                    Log.i(debugTag, e.toString());
                 }
-            } catch (JSONException e) {
-                Log.i(debugTag, e.toString());
-            }
 
+
+                try {
+                    JSONObject jsonReader = new JSONObject(response);
+                    Boolean hasMoreObjects = true;
+                    int i = 1;
+                    while (hasMoreObjects) {
+                        if (jsonReader.has(Integer.toString(i))) {
+                            lightsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
+                            Log.i(debugTag, LightsContent.items.get(i).name);
+                            Log.i("State", LightsContent.items.get(i).state.toString());
+                            i++;
+                        } else {
+                            hasMoreObjects = false;
+                        }
+                    }
+                } catch (JSONException e) {
+                    Log.i(debugTag, e.toString());
+                }
+
+            }
+        } else{
+            Toast.makeText(getActivity(), "No Wifi Connection or poor signal. Please Connect to Wifi and go back to Home", Toast.LENGTH_LONG).show();
         }
+
     }
 
     @Override
@@ -127,6 +134,11 @@ public class LightsFragment extends Fragment {
         mListener = null;
     }
 
+   // @Override
+    //public void onBridgeResponse(String response) {
+
+    //}
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -138,8 +150,9 @@ public class LightsFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnListLightsFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         void onListLightsFragmentInteraction(LightsContent.LightItem item); //for light interaction
         void onListLightsFragmentInteraction(String on, boolean isOn, int id); //for on Switch interaction
+        void onListLightsFragmentInteraction(int id); // for new light search
     }
 }
