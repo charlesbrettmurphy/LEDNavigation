@@ -27,7 +27,9 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
 
     private HttpURLConnection urlConnection;
     private String json;
-
+    private interface onBridgeResponseListener{
+        void onBridgeResponse(String json);
+    }
    // private onBridgeResponseListener listener;
   //  public interface onBridgeResponseListener
     // {  void onBridgeResponse(String response);
@@ -47,10 +49,10 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
             json = params[2]; // for readability
         }
 
+
         try {
+
             url = new URL(params[0]);
-
-
             urlConnection = (HttpURLConnection) url.openConnection();
             if (httpCallType.equals("GET")) {
                 urlConnection.setDoOutput(false);
@@ -106,8 +108,10 @@ public class BridgeCall extends AsyncTask<String, Void, String> {
             Log.i("IOException", e.toString());
             response = "IOException in write function " + e.toString();
 
-        } finally {
-            urlConnection.disconnect();
+        }
+        finally {
+            if (urlConnection!=null)
+                urlConnection.disconnect();
         }
         return response;
     }

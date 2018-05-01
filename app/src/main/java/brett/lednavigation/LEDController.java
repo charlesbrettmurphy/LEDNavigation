@@ -538,20 +538,6 @@ public class LEDController extends AppCompatActivity {
     }
 
     /*
-     * This function scales values between 0-4096 to values 0-255.
-     */
-    private int[] returnRGB(int red, int green, int blue) {
-        int max = 4096;
-        int maxRGB = 255;
-        int[] color = new int[3];
-        color[0] = Math.round(maxRGB * red / max);
-        color[1] = Math.round(maxRGB * green / max);
-        color[2] = Math.round(maxRGB * blue / max);
-        return color;
-    }
-
-
-    /*
      * Conversion from the RGB color space to HSB. Cube to Cylinder
      */
 

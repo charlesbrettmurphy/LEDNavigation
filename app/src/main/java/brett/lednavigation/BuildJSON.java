@@ -2,6 +2,7 @@ package brett.lednavigation;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,7 +24,7 @@ public class BuildJSON {
         return json;
     }
 
-    public JSONObject setLightOff( ) {
+    public JSONObject setLightOff() {
         JSONObject json = new JSONObject();
         try {
             json.put("on", false);
@@ -48,6 +49,30 @@ public class BuildJSON {
 
     }
 
+    public JSONObject createNewGroup(boolean[] selectedLights, String[] lightNames, String groupName) {
+        JSONObject json = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        try {
+            json.put("name", groupName);
+            String[] temp;
+            int arrayIndex=0; //since selected lights and lightNames may be different lengths we need to increment only when a light has been chosen
+            for (int i = 0; i < lightNames.length; i++) {
+                if (selectedLights[i]) {
+                    jsonArray.put(arrayIndex, Integer.toString(i+1));
+                    arrayIndex++;
+                }
+
+            }
+            json.put("lights", jsonArray);
+        } catch (JSONException exception)
+
+        {
+            Log.i("JSONException", exception.toString());
+        }
+        Log.i("createNewGroup", json.toString());
+        return json;
+    }
+
     public JSONObject setBrightness(int bri) {
         JSONObject json = new JSONObject();
         try {
@@ -58,6 +83,7 @@ public class BuildJSON {
         }
         return json;
     }
+
     public JSONObject setHueSatBri(int hue, int sat, int bri) {
         JSONObject json = new JSONObject();
         try {
@@ -84,16 +110,16 @@ public class BuildJSON {
         return json;
     }
 
-    public JSONObject setColorLoop(boolean isLooping){
+    public JSONObject setColorLoop(boolean isLooping) {
         JSONObject json = new JSONObject();
-        try{
+        try {
             if (isLooping) {
                 json.put("effect", "colorloop");
             }
-            if(!isLooping){
+            if (!isLooping) {
                 json.put("effect", "none");
             }
-        } catch (JSONException e){
+        } catch (JSONException e) {
             Log.i("JSONException", e.toString());
         }
         return json;

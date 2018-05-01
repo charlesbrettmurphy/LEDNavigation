@@ -173,7 +173,7 @@ to 1900k. The reds can be tinkered with 210-250 gives reasonable reproduction fo
     }
 
     private int returnGradientRadius(int brightValue) {
-        int radius = 700;
+        int radius = 400;
         int increment = brightValue * 6;
         return (radius + increment);
 

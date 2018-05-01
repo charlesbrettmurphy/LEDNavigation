@@ -35,12 +35,12 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(final ViewHolder viewHolder, int position) {
         //pull values from LightsItem and populate relevant data
         if (position==0){
             viewHolder.mNameView.setText(mValues.get(position).name);
-            viewHolder.onSwitch.setVisibility(View.INVISIBLE);
-            viewHolder.colorButton.setVisibility(View.INVISIBLE);
+            viewHolder.onSwitch.setVisibility(View.GONE);
+            viewHolder.colorButton.setVisibility(View.GONE);
             viewHolder.hueSatBriTextView.setText("Tap to begin a search");
 
         }else {
@@ -106,7 +106,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
 
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListLightsFragmentInteraction(position);
+                    mListener.onListLightsFragmentInteraction(viewHolder.getAdapterPosition());
                 }
 
             }

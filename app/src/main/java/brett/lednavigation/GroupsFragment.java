@@ -21,7 +21,7 @@ import org.json.JSONObject;
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnListGroupsFragmentInteractionListener}
  * interface.
  */
 public class GroupsFragment extends Fragment {
@@ -30,7 +30,7 @@ public class GroupsFragment extends Fragment {
     private String userURL ="";
     private int mColumnCount = 1;
     private String response="";
-    private OnListFragmentInteractionListener mListener;
+    private OnListGroupsFragmentInteractionListener mListener;
     private GroupsContent groupsContent = new GroupsContent();
 
     /**
@@ -78,8 +78,8 @@ public class GroupsFragment extends Fragment {
                             String parsedJSON = jsonReader.getJSONObject(Integer.toString(i)).toString();
                             Log.i(debugTag, parsedJSON);
                             groupsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
-                            Log.i(debugTag, Integer.toString(GroupsContent.items.get(i - 1).id));
-                            Log.i(debugTag, GroupsContent.items.get(i - 1).name);
+                            Log.i(debugTag, Integer.toString(GroupsContent.items.get(i).id));
+                            Log.i(debugTag, GroupsContent.items.get(i).name);
                             i++;
                         } else {
                             hasMoreObjects = false;
@@ -116,8 +116,8 @@ public class GroupsFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
+        if (context instanceof OnListGroupsFragmentInteractionListener) {
+            mListener = (OnListGroupsFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                                                + " must implement OnListFragmentInteractionListener");
@@ -141,10 +141,11 @@ public class GroupsFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnListFragmentInteractionListener {
+    public interface OnListGroupsFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(GroupsContent.GroupItem item);
-        void onListFragmentInteraction(String anyOn, boolean isOn, int id);
+        void onListGroupsFragmentInteraction(GroupsContent.GroupItem item); //to pass the whole GroupItem
+        void onListGroupsFragmentInteraction(String anyOn, boolean isOn, int id);//to pass if any lights are on in the group
+        void onListGroupsFragmentInteraction( int id); //to pass the id of the item clicked
 
     }
 }

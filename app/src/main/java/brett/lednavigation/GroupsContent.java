@@ -13,6 +13,10 @@ public class GroupsContent {
 
     final String debugTag = "GroupContent";
     static List<GroupItem> items = new ArrayList<>();
+    public GroupsContent(){
+        GroupItem temp = new GroupItem();
+        items.add(temp);
+    }
 
     public void createItem(JSONObject groupObject, int i) {
         GroupItem temp = new GroupItem(groupObject, i);
@@ -38,13 +42,17 @@ public class GroupsContent {
                 state = groupObject.getJSONObject("state");
                 on = state.getBoolean("any_on");
                 lights = groupObject.getJSONArray("lights");
-
                 // state = groupObject.getJSONObject("state");
             } catch (JSONException e) {
                 Log.i(debugTag, e.toString());
             }
 
         }
+        private GroupItem(){
+            id =0;
+            name = "Create a New Group";
+        }
+
 
     }
 }

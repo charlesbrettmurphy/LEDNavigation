@@ -32,7 +32,7 @@ public class LightsFragment extends Fragment {
     private String userURL = "";
     int mColumnCount;
     private OnListLightsFragmentInteractionListener mListener;
-    LightsContent lightsContent = new LightsContent();
+
     String response = "";
 
     /**
@@ -40,6 +40,7 @@ public class LightsFragment extends Fragment {
      * fragment (e.g. upon screen orientation changes).
      */
     public LightsFragment() {
+
     }
 
     public static LightsFragment newInstance(String userURL) {
@@ -53,6 +54,7 @@ public class LightsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LightsContent lightsContent = new LightsContent();
         /*retrieves the url passed from SplashScreen.
           Constructs a BridgeCall to retrieve connected lights
           Parses the JSON from the HTTP Request and adds them to LightsContent
@@ -129,7 +131,7 @@ public class LightsFragment extends Fragment {
 
     @Override
     public void onDetach() {
-        LightsContent.items.clear();
+
         super.onDetach();
         mListener = null;
     }

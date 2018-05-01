@@ -10,7 +10,7 @@ public class LightsContent {
 
 
      static List<LightItem> items = new ArrayList<>();
-     LightsContent(){
+         LightsContent(){
          LightItem temp = new LightItem();
          items.add(temp);
      }
@@ -50,7 +50,7 @@ public class LightsContent {
 
 
         }
-        private LightItem(){
+        private LightItem(){ //first item is always the option to search
             name ="Search For New Lights";
             id=0;
         }

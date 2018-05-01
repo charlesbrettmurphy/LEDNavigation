@@ -367,10 +367,10 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
      */
     public int returnGradientRadius(int brightValue) {
         int radius = 500;
-        if (brightValue * 7 < radius)
+        if (brightValue * 6 < radius)
             return radius;
         else
-            return brightValue * 7;
+            return brightValue * 6;
     }
 
     public void colorCycle(int change) {
