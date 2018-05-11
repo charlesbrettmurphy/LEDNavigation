@@ -1,7 +1,7 @@
 package brett.lednavigation;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +14,9 @@ import java.util.List;
 import brett.lednavigation.LightsFragment.OnListLightsFragmentInteractionListener;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link LightsContent} and makes a call to the
- * specified {@link OnListLightsFragmentInteractionListener}.
+ * This class binds data from {@link LightsContent.LightItem} list to the viewHolder and passes
+ * relevant info back to {@link MainActivity} via the appropriate method in the interface
+ * {@link OnListLightsFragmentInteractionListener}.
  */
 public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecyclerViewAdapter.ViewHolder> {
 
@@ -28,22 +29,22 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                             .inflate(R.layout.lights_fragment_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int position) {
         //pull values from LightsItem and populate relevant data
-        if (position==0){
+        if (position == 0) {
             viewHolder.mNameView.setText(mValues.get(position).name);
             viewHolder.onSwitch.setVisibility(View.GONE);
             viewHolder.colorButton.setVisibility(View.GONE);
             viewHolder.hueSatBriTextView.setText("Tap to begin a search");
 
-        }else {
+        } else {
 
             viewHolder.mId = Integer.toString(mValues.get(position).id);
             viewHolder.mItem = mValues.get(position);
@@ -73,7 +74,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
         viewHolder.colorButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onListLightsFragmentInteraction(viewHolder.mItem);
+                mListener.onColorButtonPressed(viewHolder.mItem);
 
             }
         });
@@ -90,7 +91,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
                     isOn = false;
                 }
                 if (null != mListener) {
-                    mListener.onListLightsFragmentInteraction("on", isOn, viewHolder.mItem.id);
+                    mListener.onSwitchFlipped("on", isOn, viewHolder.mItem.id);
                 }
             }
         });
@@ -106,7 +107,7 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
 
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListLightsFragmentInteraction(viewHolder.getAdapterPosition());
+                    mListener.onSearchPressed(viewHolder.getAdapterPosition());
                 }
 
             }
@@ -120,17 +121,17 @@ public class LightsRecyclerViewAdapter extends RecyclerView.Adapter<LightsRecycl
 
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView mNameView;
-        public final Switch onSwitch;
-        public final TextView hueSatBriTextView;
-        public String mId;
-        public final Button colorButton;
-        public LightsContent.LightItem mItem;
-        public boolean reachable;
+        private final View mView;
+        private final TextView mNameView;
+        private final Switch onSwitch;
+        private final TextView hueSatBriTextView;
+        private String mId;
+        private final Button colorButton;
+        private LightsContent.LightItem mItem;
+        private boolean reachable;
         public boolean searchNew;
 
-        public ViewHolder(View view) {
+        private ViewHolder(View view) {
             super(view);
             mView = view;
             mNameView = view.findViewById(R.id.nameTextView);

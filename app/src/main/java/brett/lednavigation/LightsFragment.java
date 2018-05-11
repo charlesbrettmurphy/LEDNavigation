@@ -2,9 +2,8 @@ package brett.lednavigation;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,28 +18,29 @@ import org.json.JSONObject;
 import java.util.concurrent.ExecutionException;
 
 /**
- * A fragment representing a list of Items.
- * <p/>
+ * /**
+ * This fragment displays a list of Lights configured on the bridge. The first item in the list allows you
+ * to begin a search for new Lights and all items below it contain a custom view with the name of the group,
+ * the lights contained in the group, a switch to toggle on off and a color button to configure color changes
+ * <p>
+ * {@link LightsContent} holds the data model which is refreshed when the fragment is refreshed
+ * {@link LightsRecyclerViewAdapter} binds the data and returns the inflated view
  * Activities containing this fragment MUST implement the {@link OnListLightsFragmentInteractionListener}
  * interface.
  */
-public class LightsFragment extends Fragment {
+public class LightsFragment extends Fragment implements BridgeCall.onBridgeResponseListener {
 
 
     private String debugTag = "LightsFragment";
     private static final String paramTag = "userUrl";
-    private String userURL = "";
-    int mColumnCount;
-    private OnListLightsFragmentInteractionListener mListener;
+    private OnListLightsFragmentInteractionListener listener;
+    LightsContent lightsContent = new LightsContent();
+    LayoutInflater layoutInflater;
+    ViewGroup viewGroup;
+    Bundle currentInstanceState;
 
-    String response = "";
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public LightsFragment() {
-
     }
 
     public static LightsFragment newInstance(String userURL) {
@@ -54,7 +54,7 @@ public class LightsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LightsContent lightsContent = new LightsContent();
+
         /*retrieves the url passed from SplashScreen.
           Constructs a BridgeCall to retrieve connected lights
           Parses the JSON from the HTTP Request and adds them to LightsContent
@@ -62,58 +62,56 @@ public class LightsFragment extends Fragment {
         CheckConnectivity checkConnectivity = new CheckConnectivity(getActivity());
         if (checkConnectivity.checkWifiOnAndConnected()) {
             if (getArguments() != null) {
-                userURL = getArguments().getString(paramTag);
-                BridgeCall bridgeCall = new BridgeCall();
+                String userURL = getArguments().getString(paramTag);
+                BridgeCall bridgeCall = new BridgeCall(this);
                 BuildURL buildURL = new BuildURL(userURL);
                 userURL = buildURL.getLights();
+                //TODO: Implement interfaces so bridgeCall.execute is not blocking UI thread and animation is smoother
                 try {
-                    //TODO: recode this is so it is using an interface and not blocking ui thread.
-                    response = bridgeCall.execute(userURL, "GET").get();
-                } catch (Exception e) {
-                    Log.i(debugTag, e.toString());
-                }
-
-
-                try {
-                    JSONObject jsonReader = new JSONObject(response);
+                    String json = bridgeCall.execute(userURL, "GET").get();
+                    JSONObject jsonReader = new JSONObject(json);
                     Boolean hasMoreObjects = true;
                     int i = 1;
                     while (hasMoreObjects) {
                         if (jsonReader.has(Integer.toString(i))) {
                             lightsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
-                            Log.i(debugTag, LightsContent.items.get(i).name);
-                            Log.i("State", LightsContent.items.get(i).state.toString());
+                            Log.d(debugTag, LightsContent.items.get(i).name);
+                            Log.d("State", LightsContent.items.get(i).state.toString());
                             i++;
                         } else {
                             hasMoreObjects = false;
                         }
                     }
                 } catch (JSONException e) {
-                    Log.i(debugTag, e.toString());
+                    Log.d(debugTag, e.toString());
+                } catch (InterruptedException e) {
+                    Log.d(debugTag, e.toString());
+                } catch (ExecutionException e) {
+                    Log.d(debugTag, e.toString());
                 }
 
             }
-        } else{
+        } else {
             Toast.makeText(getActivity(), "No Wifi Connection or poor signal. Please Connect to Wifi and go back to Home", Toast.LENGTH_LONG).show();
         }
 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle
+                                     savedInstanceState) {
         View view = inflater.inflate(R.layout.lights_fragment_item_list, container, false);
         // Set the adapter
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-            recyclerView.setAdapter(new LightsRecyclerViewAdapter(LightsContent.items, mListener));
+            recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            recyclerView.setAdapter(new LightsRecyclerViewAdapter(LightsContent.items, listener));
         }
+        layoutInflater = inflater;
+        viewGroup = container;
+        currentInstanceState = savedInstanceState;
         return view;
     }
 
@@ -122,7 +120,7 @@ public class LightsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnListLightsFragmentInteractionListener) {
-            mListener = (OnListLightsFragmentInteractionListener) context;
+            listener = (OnListLightsFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                                                + " must implement OnListFragmentInteractionListener");
@@ -133,28 +131,41 @@ public class LightsFragment extends Fragment {
     public void onDetach() {
 
         super.onDetach();
-        mListener = null;
+        listener = null;
     }
 
-   // @Override
-    //public void onBridgeResponse(String response) {
+    @Override
+    public void onBridgeResponse(String json) {
+/*
+        try {
 
-    //}
+            JSONObject jsonReader = new JSONObject(json);
+            Boolean hasMoreObjects = true;
+            int i = 1;
+            while (hasMoreObjects) {
+                if (jsonReader.has(Integer.toString(i))) {
+                    lightsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
+                    Log.d(debugTag, LightsContent.items.get(i).name);
+                    Log.d("State", LightsContent.items.get(i).state.toString());
+                    i++;
+                } else {
+                    hasMoreObjects = false;
+                }
+            }
+        } catch (JSONException e) {
+            Log.d(debugTag, e.toString());
+        }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+*/
+    }
+
+
     public interface OnListLightsFragmentInteractionListener {
 
-        void onListLightsFragmentInteraction(LightsContent.LightItem item); //for light interaction
-        void onListLightsFragmentInteraction(String on, boolean isOn, int id); //for on Switch interaction
-        void onListLightsFragmentInteraction(int id); // for new light search
+        void onColorButtonPressed(LightsContent.LightItem item); //for light interaction
+
+        void onSwitchFlipped(String on, boolean isOn, int id); //for on Switch interaction
+
+        void onSearchPressed(int id); // for new light search
     }
 }

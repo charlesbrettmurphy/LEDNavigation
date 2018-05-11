@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,16 +20,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import brett.lednavigation.dummy.DummyContent;
-
+/** This Activity contains the Nav Drawer, the logic to manage the Fragments
+ * and the communication between them and to launch the other Activities**/
+//TODO: Look into implementing widget for global on/off, and if it can it be exposed on the lock screen like media controls
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
                            LightsFragment.OnListLightsFragmentInteractionListener,
                            GroupsFragment.OnListGroupsFragmentInteractionListener,
-                           SchedulesFragment.OnListFragmentInteractionListener,
-                           SplashScreen.OnFragmentInteractionListener {
+                           SplashScreen.OnFragmentInteractionListener, BridgeCall.onBridgeResponseListener {
     String uri = "";
-
 
     static {
         System.loadLibrary("huesdk");
@@ -38,35 +38,33 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
         Fragment fragment = null;
-        Class fragmentClass= SplashScreen.class;
+        Class fragmentClass = SplashScreen.class;
         try {
             fragment = (Fragment) fragmentClass.newInstance();
         } catch (Exception e) {
-            Log.i("Fragment error", e.toString());
+            Log.d("Fragment error", e.toString());
         }
 
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().add(R.id.flContent, fragment).commit();
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -96,9 +94,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     int lastSelectedId = -1; //to compare menu items and not reload fragments that are already loaded in content view
-    @SuppressWarnings("StatementWithEmptyBody")
+    //TODO:Change actionTitleBar according to where user is in the app.
+
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         boolean hasToast = false;
@@ -124,6 +123,8 @@ public class MainActivity extends AppCompatActivity
 
             } else if (id == R.id.nav_schedules) {
                 hasToast = true;
+                //TODO: migrate over schedule module from an older app.
+                //TODO: Implement ability to schedule lights to turn on in the morning and set colorTemp according to weather forecast
             /*
             SchedulesFragment schedulesFragment = SchedulesFragment.newInstance(2);
             FragmentManager fragmentManager = getSupportFragmentManager();
@@ -142,27 +143,29 @@ public class MainActivity extends AppCompatActivity
             if (id == R.id.nav_feedback) {
                 Intent intent = new Intent(MainActivity.this, FeedbackActivity.class);
                 startActivity(intent);
+                lastSelectedId = id;
 
             }
             if (id == R.id.nav_website) {
                 Uri uri = Uri.parse("https://www.sowilodesign.com");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
+                lastSelectedId = id;
             }
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         if (hasToast) {
-            Toast.makeText(MainActivity.this, "Schedule alarms and ability set lights according to weather coming soon!", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "Set schedule for lights and according to weather forecast coming soon!", Toast.LENGTH_LONG).show();
         }
         return true;
     }
 
     @Override //Interface GroupsFragment colorButton
-    public void onListGroupsFragmentInteraction(GroupsContent.GroupItem item) {
-        Log.i("GroupsInterface", Integer.toString(item.id).concat(" ").concat(item.name));
-        Log.i("colorButtonPressed", "");
-        Intent intent = new Intent(MainActivity.this, LEDController.class);
+    public void onGroupsColorButtonPressed(GroupsContent.GroupItem item) {
+        Log.d("GroupsInterface", Integer.toString(item.id).concat(" ").concat(item.name));
+        Log.d("colorButtonPressed", "");
+        Intent intent = new Intent(MainActivity.this, LEDControllerActivity.class);
         BuildURL buildURL = new BuildURL(uri);
         String url = buildURL.getGroupAttributesById(item.id);
         intent.putExtra("url", url);
@@ -171,7 +174,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override //Interface to GroupsFragment onSwitch
-    public void onListGroupsFragmentInteraction(String anyOn, boolean isOn, int id) {
+    public void onGroupsSwitchFlipped(String anyOn, boolean isOn, int id) {
         BuildJSON buildJSON = new BuildJSON();
         BuildURL buildURL = new BuildURL(uri);
         String url = buildURL.setGroupState(id);
@@ -184,17 +187,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override // Interface to GroupsFragment addGroup
-    public void onListGroupsFragmentInteraction(int id) {
+    public void onCreateNewGroup(int id) {
 
         if (id == 0) {
-
+            //TODO: Fix crash when create New Group is selected before Lights have been loaded once
             final String[] lightsList = new String[LightsContent.items.size() - 1];
             final boolean[] checkedItems = new boolean[LightsContent.items.size() - 1];
-            Log.i("LightsContentSize", Integer.toString(LightsContent.items.size()));
+            Log.d("LightsContentSize", Integer.toString(LightsContent.items.size()));
             for (int i = 0; i < (LightsContent.items.size() - 1); i++) {
                 lightsList[i] = LightsContent.items.get(i + 1).name;
                 checkedItems[i] = false;
-                Log.i("lightsListArray", lightsList[i]);
+                Log.d("lightsListArray", lightsList[i]);
             }
 
             AlertDialog.Builder addGroupDialog = new AlertDialog.Builder(MainActivity.this);
@@ -203,11 +206,12 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onClick(DialogInterface dialogInterface, int item, boolean isChecked) {
 
-                    Log.i("item checked", Integer.toString(item) + isChecked);
-                    checkedItems[item]=isChecked;
+                    Log.d("item checked", Integer.toString(item) + isChecked);
+                    checkedItems[item] = isChecked;
 
                 }
             });
+            //TODO: Ask Mike how he prefers name changes to be handled and implement onlongpress or trigger a dialog to change name.
             addGroupDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int item) {
@@ -217,11 +221,7 @@ public class MainActivity extends AppCompatActivity
                     String json = buildJSON.createNewGroup(checkedItems, lightsList, "UnNamed Group").toString();
                     BridgeCall bridgeCall = new BridgeCall();
                     bridgeCall.execute(url, "POST", json);
-                    Toast.makeText(getApplicationContext(), "Group Added, reload page", Toast.LENGTH_LONG);
-
-                    
-
-
+                    Toast.makeText(getApplicationContext(), "Group Added, reload page", Toast.LENGTH_LONG).show();
 
                 }
             });
@@ -241,26 +241,17 @@ public class MainActivity extends AppCompatActivity
 
 
     @Override //interface from SplashScreen Fragment passing ip and user for connected gateway
-    public void onFragmentInteraction(String userUrl) {
+    public void onUrlPassed(String userUrl) {
         uri = userUrl;
-        Log.i("Listener", userUrl);
+        Log.d("Listener", userUrl);
 
     }
 
-
-    @Override //interface from Schedules Fragment
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
-
-    }
-
-    public void setActionBarTitle(String title) {
-        getSupportActionBar().setTitle(title);
-    }
 
     @Override //interface from LightsFragment for changing a specific light
-    public void onListLightsFragmentInteraction(LightsContent.LightItem item) {
-        Log.i("colorButtonPressed", "");
-        Intent intent = new Intent(MainActivity.this, LEDController.class);
+    public void onColorButtonPressed(LightsContent.LightItem item) {
+        Log.d("colorButtonPressed", "");
+        Intent intent = new Intent(MainActivity.this, LEDControllerActivity.class);
         BuildURL buildURL = new BuildURL(uri);
         String url = buildURL.getLightState(item.id);
         intent.putExtra("url", url);
@@ -269,7 +260,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override//interface from LightsFragment to signal when the switch has been flipped
-    public void onListLightsFragmentInteraction(String on, boolean isOn, int id) {
+    public void onSwitchFlipped(String on, boolean isOn, int id) {
         BuildJSON buildJSON = new BuildJSON();
         BuildURL buildURL = new BuildURL(uri);
         String url = buildURL.setLightState(id);
@@ -282,7 +273,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override //interface from LightsFragment to search for new lights
-    public void onListLightsFragmentInteraction(int id) {
+    public void onSearchPressed(int id) {
         if (id == 0) {
             BuildURL buildURL = new BuildURL(uri);
             String url = buildURL.getLights();
@@ -290,15 +281,20 @@ public class MainActivity extends AppCompatActivity
             bridgeCall.execute(url, "POST");
             new CountDownTimer(40000, 1000) {
                 public void onTick(long millisUntilFinished) {
-                    Toast.makeText(getApplicationContext(), "Searching for " + (int) millisUntilFinished / 1000, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Searching for " + (int) millisUntilFinished / 1000, Toast.LENGTH_SHORT).show();
                 }
 
                 public void onFinish() {
-                    Toast.makeText(getApplicationContext(), "Finished, please navigate home and then reload Lights", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Finished, please navigate home and then reload Lights", Toast.LENGTH_LONG).show();
                 }
             }.start();
 
         }
+    }
+
+    @Override
+    public void onBridgeResponse(String json) {
+        //TODO: reload fragments when state changes
     }
 }
 

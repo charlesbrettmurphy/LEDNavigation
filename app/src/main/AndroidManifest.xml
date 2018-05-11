@@ -26,12 +26,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ColorTemperatureActivity" />
         <activity
-            android:name=".LEDController"
-            android:screenOrientation="portrait" />
-        <activity android:name=".WebSiteActivity" />
-        <activity android:name=".FeedbackActivity"></activity>
+            android:name=".ColorTemperatureActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".LEDControllerActivity"
+            android:screenOrientation="portrait" ></activity>
+        <activity
+            android:name=".FeedbackActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

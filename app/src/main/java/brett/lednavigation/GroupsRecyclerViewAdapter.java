@@ -8,13 +8,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
+
 import java.util.List;
+
 import brett.lednavigation.GroupsContent.GroupItem;
 import brett.lednavigation.GroupsFragment.OnListGroupsFragmentInteractionListener;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link  GroupItem makes a call to the
- * specified {@link OnListGroupsFragmentInteractionListener}.
+ * This class binds data from {@link GroupsContent} list to the viewHolder and passes
+ * relevant info back to {@link MainActivity}
  */
 public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecyclerViewAdapter.ViewHolder> {
 
@@ -27,18 +29,18 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                             .inflate(R.layout.groups_fragment_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, final int position) {
 
         if (position == 0) {
             viewHolder.idView.setVisibility(View.GONE);
-            viewHolder.mNameView.setText(mValues.get(position).name);
+            viewHolder.nameView.setText(mValues.get(position).name);
             viewHolder.onSwitch.setVisibility(View.GONE);
             viewHolder.colorButton.setVisibility(View.GONE);
             viewHolder.lights.setText("Tap to add a new Group");
@@ -46,7 +48,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
 
         } else {
             viewHolder.mItem = mValues.get(position);
-            viewHolder.mNameView.setText(mValues.get(position).name);
+            viewHolder.nameView.setText(mValues.get(position).name);
             viewHolder.idView.setText(Integer.toString(mValues.get(position).id));
             viewHolder.lights.setText(mValues.get(position).lights.toString());
             viewHolder.onSwitch.setChecked(mValues.get(position).on);
@@ -69,7 +71,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
                         isOn = false;
                     }
                     if (mListener != null) {
-                        mListener.onListGroupsFragmentInteraction("any_on", isOn, viewHolder.mItem.id);
+                        mListener.onGroupsSwitchFlipped("any_on", isOn, viewHolder.mItem.id);
                     }
 
                 }
@@ -82,8 +84,8 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
             public void onClick(View v) {
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.onListGroupsFragmentInteraction(viewHolder.mItem);
+                    // fragment is attached to one) the color button has been pressed
+                    mListener.onGroupsColorButtonPressed(viewHolder.mItem);
                 }
             }
         });
@@ -92,7 +94,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
-                    mListener.onListGroupsFragmentInteraction(position);
+                    mListener.onCreateNewGroup(position);
                 }
             }
         });
@@ -104,18 +106,18 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final TextView mNameView;
-        public final TextView idView;
-        public final TextView lights;
-        public final Switch onSwitch;
-        public final Button colorButton;
-        public GroupItem mItem;
+        private final View mView;
+        private final TextView nameView;
+        private final TextView idView;
+        private final TextView lights;
+        private final Switch onSwitch;
+        private final Button colorButton;
+        private GroupItem mItem;
 
-        public ViewHolder(View view) {
+        private ViewHolder(View view) {
             super(view);
             mView = view;
-            mNameView = view.findViewById(R.id.nameTextView);
+            nameView = view.findViewById(R.id.nameTextView);
             idView = view.findViewById(R.id.idTextView);
             lights = view.findViewById(R.id.lightsTextView);
             onSwitch = view.findViewById(R.id.onSwitch);
@@ -126,7 +128,7 @@ public class GroupsRecyclerViewAdapter extends RecyclerView.Adapter<GroupsRecycl
 
         @Override
         public String toString() {
-            return super.toString() + " '" + mNameView.getText() + "'";
+            return super.toString() + " '" + nameView.getText() + "'";
         }
     }
 }

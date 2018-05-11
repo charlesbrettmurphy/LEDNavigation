@@ -5,76 +5,72 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+/**
+ * This Activity contains the two sliders to adjust the lights brightness and mired color temperature
+ * and the necessary UI animation. It is called from  {@link LEDControllerActivity} and is passed the
+ * same resource url.
+ **/
+//TODO: consolidate some of the calculation methods into a separate class with some of LEDController calcs
+//TODO: configure getInitialLightState and clamp to closest colorTemperature on ActivityLoad
 public class ColorTemperatureActivity extends AppCompatActivity {
     private TextView brightnessTextView;
     private TextView colorTempTextView;
-    private SeekBar colorTempSeek;
-    private SeekBar brightSeek;
-    private boolean mqtt = false;
-    private Button submit;
-    private Button rgb;
-    private int START_COLOR=0xfff9f7a8;
-    private int END_COLOR=0x00000000;
     View backgroundView;
-    int planckValue=127;
-    int brightValue=127;
+    int colorTempValue;
+    int brightValue = 127;
     int miredTemperature;
     int max = 6500;
     int[] rgbToColor;
-    String bridgebuilder;
+    String bridgeBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_color_temperature);
         brightnessTextView = findViewById(R.id.brightnessTextView);
-        colorTempSeek = findViewById(R.id.colorTempSeek);
-        brightSeek = findViewById(R.id.brightSeek);
-        rgb = findViewById(R.id.rgb);
+        SeekBar colorTempSeek = findViewById(R.id.colorTempSeek);
+        SeekBar brightSeek = findViewById(R.id.brightSeek);
+        Button rgbButton = findViewById(R.id.rgb);
         colorTempTextView = findViewById(R.id.colorTempTextView);
         brightSeek.setProgress(127);
         colorTempSeek.setProgress(127);
-        bridgebuilder = getIntent().getStringExtra("bridgeBuilderURL");
+        bridgeBuilder = getIntent().getStringExtra("bridgeBuilderURL");
         backgroundView = getWindow().peekDecorView();
+        //for troubleshooting display anomalies across devices.
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-
-
         //initial ui state
-        planckValue = (max-(127*13));
-        rgbToColor= colorTempToRGB();
+        colorTempValue = (int) Math.round(max - (127 * 12.9));
+        rgbToColor = colorTempToRGB();
         updateUI(rgbToColor);
 
-
+        //SeekBar for Color Temperature
         colorTempSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
 
-                planckValue = (int) Math.round(max - (progress*12.9));
-                miredTemperature = progress+153; //this is the format the hue API requires;
+                colorTempValue = (int) Math.round(max - (progress * 12.9));
+                miredTemperature = progress + 153; //this is the format the hue API requires;
                 rgbToColor = colorTempToRGB();
                 updateUI(rgbToColor);
-
-
-
             }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {
 
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-               setBrightnessAndTemperature();
+                setBrightnessAndTemperature();
             }
         });
 
-        rgb.setOnClickListener(new View.OnClickListener() {
+        rgbButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
@@ -98,13 +94,8 @@ public class ColorTemperatureActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 setBrightnessAndTemperature();
-
-
             }
         });
-
-
-
 
 
     }
@@ -112,46 +103,49 @@ public class ColorTemperatureActivity extends AppCompatActivity {
     public void setBrightnessAndTemperature() {
         BridgeCall bridgeCall = new BridgeCall();
         BuildJSON buildJSON = new BuildJSON();
-        bridgebuilder.concat("/state");
         String json = buildJSON.setColorTemperatureAndBrightness(miredTemperature, brightValue).toString();
-        bridgeCall.execute(bridgebuilder, "PUT", json);
+        bridgeCall.execute(bridgeBuilder, "PUT", json);
+    }
+
+    /*an algorithm for extrapolating color temperatures to RGB for temperatures between 6600K
+    to 1900k. The reds can be tinkered with 210-250 gives reasonable reproduction for my S7 edge*/
+    public int[] colorTempToRGB() {
+        double temp = colorTempValue / 100;
+        int[] rgb = new int[3];
+        double red, green, blue;
+        red = 230;
+        green = temp;
+        green = 99.4708025861 * Math.log(green) - 161.1195681661;
+        blue = temp - 10;
+        blue = 138.5177312231 * Math.log(blue) - 305.0447927307;
+        green = clamp(green);
+        blue = clamp(blue);
+        rgb[0] = (int) (red);
+        rgb[1] = (int) (green);
+        rgb[2] = (int) (blue);
+        return rgb;
+    }
+
+    public double clamp(double x) {
+        if (x < 0) {
+            return 0;
         }
-/*an algorithm for extrapolating color temperatures to RGB for temperatures between 6600K
-to 1900k. The reds can be tinkered with 210-250 gives reasonable reproduction for my S7 edge*/
-    public int[] colorTempToRGB(){
-       double temp =  planckValue/100;
-       int[]rgb = new int[3];
-       double red, green, blue;
-           red= 230;
-           green= temp;
-           green = 99.4708025861* Math.log(green) - 161.1195681661;
-           blue = temp-10;
-           blue = 138.5177312231 * Math.log(blue) - 305.0447927307;
-           green = clamp(green);
-           blue = clamp(blue);
-           rgb[0]= (int)(red);
-           rgb[1]= (int)(green);
-           rgb[2]=(int)(blue);
-           return rgb;
-    }
-    public double clamp(double x){
-        if(x<0){return 0;}
-        if(x>255){return 255;}
+        if (x > 255) {
+            return 255;
+        }
         return x;
-
     }
-    private void updateUI(int [] rgb) {
 
-
-        int colorInt = Color.rgb(rgb[0],rgb[1],rgb[2]);
+    private void updateUI(int[] rgb) {
+        int START_COLOR = 0xfff9f7a8;
+        int END_COLOR = 0x00000000;
+        int colorInt = Color.rgb(rgb[0], rgb[1], rgb[2]);
         brightnessTextView.setTextColor(colorInt);
         colorTempTextView.setTextColor(colorInt);
-        brightnessTextView.setText(" Brightness: " + brightValue);
-        colorTempTextView.setText("Temperature: " + planckValue+ "K");
-        // String hexColor = String.format( "%02x%02x%02x%02x",255, color[0], color[1], color[2]).toUpperCase(); Useful Keep
-        // int decimalColor = (int) Long.parseLong(hexColor, 16); Useful keep
+        brightnessTextView.setText(" Brightness: ".concat(Integer.toString(brightValue)));
+        colorTempTextView.setText("Temperature: ".concat(Integer.toString(colorTempValue) + "K"));
         int[] gradientColor = new int[9];
-        // Sets the parameters for the Gradient, could spend forever tweaking these */
+        // Sets the parameters for the Gradient
         gradientColor[0] = START_COLOR;
         gradientColor[1] = colorInt;
         gradientColor[2] = colorInt;
@@ -179,7 +173,7 @@ to 1900k. The reds can be tinkered with 210-250 gives reasonable reproduction fo
 
 
     }
-    }
+}
 
 
 

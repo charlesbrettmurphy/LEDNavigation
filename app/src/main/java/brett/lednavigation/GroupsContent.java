@@ -9,9 +9,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class holds the data for a GroupItem object and provides a list of all GroupItems
+ * {@link GroupsRecyclerViewAdapter} inflates this list in a view
+ * {@link GroupsFragment} refreshes data stored in this model.
+ */
 public class GroupsContent {
 
-    final String debugTag = "GroupContent";
+
     static List<GroupItem> items = new ArrayList<>();
     public GroupsContent(){
         GroupItem temp = new GroupItem();
@@ -24,7 +29,7 @@ public class GroupsContent {
     }
 
     public class GroupItem {
-
+        private final String debugTag = "GroupContent";
         int id;
         String name;
         JSONObject state;
@@ -42,7 +47,6 @@ public class GroupsContent {
                 state = groupObject.getJSONObject("state");
                 on = state.getBoolean("any_on");
                 lights = groupObject.getJSONArray("lights");
-                // state = groupObject.getJSONObject("state");
             } catch (JSONException e) {
                 Log.i(debugTag, e.toString());
             }

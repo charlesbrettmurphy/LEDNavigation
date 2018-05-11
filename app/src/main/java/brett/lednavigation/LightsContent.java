@@ -1,19 +1,29 @@
 package brett.lednavigation;
+
 import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class holds the data for a LightItem object and provides a list of all LightItems connected
+ * to the bridge.
+ * {@link LightsRecyclerViewAdapter} inflates this list in a view
+ * {@link LightsFragment} refreshes data stored in this model.
+ */
 
 public class LightsContent {
 
 
-     static List<LightItem> items = new ArrayList<>();
-         LightsContent(){
-         LightItem temp = new LightItem();
-         items.add(temp);
-     }
+    static List<LightItem> items = new ArrayList<>();
+
+    LightsContent() {
+        LightItem temp = new LightItem();
+        items.add(temp);
+    }
 
     public void createItem(JSONObject lightObject, int i) {
         LightItem temp = new LightItem(lightObject, i);
@@ -44,15 +54,17 @@ public class LightsContent {
                 hue = state.getInt("hue");
                 on = state.getBoolean("on");
             } catch (JSONException e) {
-                Log.i(debugTag, e.toString());
+                Log.d(debugTag, e.toString());
             }
-            Log.i(debugTag, Integer.toString(i) + name);
+            Log.d(debugTag, Integer.toString(i) + name);
 
 
         }
-        private LightItem(){ //first item is always the option to search
-            name ="Search For New Lights";
-            id=0;
+
+        //first item in the list is always the option to search
+        private LightItem() {
+            name = "Search For New Lights";
+            id = 0;
         }
 
 

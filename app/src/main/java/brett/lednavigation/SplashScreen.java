@@ -5,10 +5,9 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -48,21 +47,15 @@ import java.util.List;
 
 
 /**
- * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link SplashScreen.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link SplashScreen#newInstance} factory method to
- * create an instance of this fragment.
  */
 public class SplashScreen extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener {
     // TODO: Refactor to make this cleaner and more modular.
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+
     private static final String ARG_PARAM1 = "uri";
-
     private String gatewayURL;
-    private String mParam2;
-
     Handler handler = new Handler();
     int[] color;
     int redValue = 255;
@@ -110,8 +103,9 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         Connected
     }
 
-    //end of hue variables
-
+    public interface OnFragmentInteractionListener {
+        void onUrlPassed(String userUrl);
+    }
 
     private OnFragmentInteractionListener mListener;
 
@@ -119,13 +113,10 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         // Required empty public constructor
     }
 
-
-    /* TODO: Rename and change types and number of parameters */
     public static SplashScreen newInstance(String uri) {
         SplashScreen fragment = new SplashScreen();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, uri);
-
         fragment.setArguments(args);
         return fragment;
     }
@@ -138,18 +129,17 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         }
         Persistence.setStorageLocation(getActivity().getFilesDir().getAbsolutePath(), "LEDNavigation");
         HueLog.setConsoleLogLevel(HueLog.LogLevel.INFO);
-
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_splash_screen, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         statusTextView = view.findViewById(R.id.statusTextView);
         final Button changeBrokerIP = view.findViewById(R.id.changeBrokerIP);
         final EditText enterGateWayIP = view.findViewById(R.id.enterGatewayIP);
@@ -190,8 +180,6 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
             public void run() {
                 String hexColor = String.format("%02x%02x%02x%02x", 255, redValue, greenValue, blueValue).toUpperCase();
                 decimalColor = (int) Long.parseLong(hexColor, 16);
-                //  String log = Integer.toString(decimalColor);
-                ;
                 gradientColor[0] = startColor;
                 gradientColor[1] = startColor;
                 gradientColor[2] = decimalColor;
@@ -220,20 +208,20 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         final CheckConnectivity checkConnectivity = new CheckConnectivity(getActivity());
         final boolean isWifiOn = checkConnectivity.checkWifiOnAndConnected();
         if (gatewayURL != null) {
-            Log.i("gatewayURL", gatewayURL);
+            Log.d("gatewayURL", gatewayURL);
             if (isWifiOn) {
                 boolean isConnected = quickTestGatewayConnection(gatewayURL);
                 //check that wifi is on and ping the gateway for internet services
                 if (isConnected) {
                     //if its a valid gateway and we have services connect to it
                     onBridgeInitialized(gatewayURL);
-                    Log.i("onBridgeInitialized", "debug1");
+                    Log.d("onBridgeInitialized", "debug1");
                     statusTextView.setText("Connected");
                     hueAutoConnect.setVisibility(View.GONE);
                     bridgeIP.setVisibility(View.INVISIBLE);
                 }
                 if (!isConnected) {
-                    Log.i("isNotConnected", "debug3");
+                    Log.d("isNotConnected", "debug3");
                     //if wifi is connected but the connection test failed, try and use cache
                     String bridgeIp = getLastUsedBridgeIp();
                     if (bridgeIp == null) {
@@ -245,9 +233,10 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
                     }
                 }
             }
+
             if (!isWifiOn) {
                 //if wifi is not connected inform the user to connect and rescan
-                Log.i("in !wificheck", "debug 2");
+                Log.d("in !wificheck", "debug 2");
                 statusTextView.setText("1. Please Connect To A WiFi Network \n 2. Press Auto-Connect");
                 hueAutoConnect.setVisibility(View.VISIBLE);
             }
@@ -281,14 +270,14 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         });
     }
 
-
+    //Passes the URL for the connected gateway and user to MainActivity
     public void onBridgeInitialized(String userUrl) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(userUrl);
+            mListener.onUrlPassed(userUrl);
         }
     }
 
-
+    //Fragment Lifecycle Method
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -300,27 +289,14 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         }
     }
 
+    //Fragment Lifecycle Method
     @Override
     public void onDetach() {
         super.onDetach();
-        handler.removeCallbacksAndMessages(null);
+        handler.removeCallbacksAndMessages(null); //stop animation from burning cpu
         mListener = null;
     }
 
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(String userUrl);
-    }
 
     public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
                                                          int reqWidth, int reqHeight) {
@@ -363,7 +339,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     }
 
     /**
-     * changes radius values for gradient
+     * changes radius values for light animation gradient
      */
     public int returnGradientRadius(int brightValue) {
         int radius = 500;
@@ -373,9 +349,10 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
             return brightValue * 6;
     }
 
+    //TODO: In settings, allow user to set the variable change.
     public void colorCycle(int change) {
 
-        if (rgbSwitch == true) {
+        if (rgbSwitch) {
             redValue = redValue + change;
             if (redValue >= 255) {
                 redValue = 255;
@@ -392,7 +369,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
             }
         }
 
-        if (rgbSwitch == false) {
+        if (rgbSwitch) {
             redValue = redValue - change;
             if (redValue <= 0) {
                 redValue = 0;
@@ -414,16 +391,16 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         }
     }
 
-    /**
-     * returns a modulating value for brightness between min and max.
-     * brightValue is then used to calculate gradient radius for animation
+    /*
+      returns a modulating value for brightness between min and max.
+      brightValue is then used to calculate gradient radius for animation
      */
+    //TODO: In settings, allow the user to change min and max
     public void brightCycle(int min, int max) {
         if (brightValue >= max)
             decreasing = true;
         if (brightValue <= min)
             decreasing = false;
-        //could put a colorValue method call here and ui color will change as well as pulse
         if (!decreasing) {
             brightValue++;
             getLogoBrightness = getLogoBrightness + 4;
@@ -440,23 +417,20 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         BridgeCall bridgeCall = new BridgeCall();
         BuildURL buildURL = new BuildURL(testUrl);
         testUrl = buildURL.getConnectionStatusUrl();
-        Log.i("quickTest", testUrl);
+        Log.d("quickTest", testUrl);
+        //TODO: Implement interface so waiting for the result is not blocking UI thread
         try {
             String result = bridgeCall.execute(testUrl, "GET").get();
             JSONObject jsonObject = new JSONObject(result);
             JSONObject internetservices = jsonObject.getJSONObject("internetservices");
-            if (internetservices.getString("internet").equalsIgnoreCase("Connected"))
-                return true;
-            else
-                return false;
+            return (internetservices.getString("internet").equalsIgnoreCase("Connected"));
+
         } catch (Exception e) {
             return false;
         }
 
     }
 
-
-    /** hue Connect Methods */
 
     /**
      * Use the KnownBridges API to retrieve the last connected bridge
@@ -518,7 +492,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
 
                         updateUI(UIState.BridgeDiscoveryResults, "Found " + results.size() + " bridge(s) in the network.");
                     } else if (returnCode == ReturnCode.STOPPED) {
-                        Log.i(TAG, "Bridge discovery stopped.");
+                        Log.d(TAG, "Bridge discovery stopped.");
                     } else {
                         updateUI(UIState.Idle, "Error doing bridge discovery: " + returnCode);
                     }
@@ -566,7 +540,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     private BridgeConnectionCallback bridgeConnectionCallback = new BridgeConnectionCallback() {
         @Override
         public void onConnectionEvent(BridgeConnection bridgeConnection, ConnectionEvent connectionEvent) {
-            Log.i(TAG, "Connection event: " + connectionEvent);
+            Log.d(TAG, "Connection event: " + connectionEvent);
 
             switch (connectionEvent) {
                 case LINK_BUTTON_NOT_PRESSED:
@@ -610,26 +584,20 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     private BridgeStateUpdatedCallback bridgeStateUpdatedCallback = new BridgeStateUpdatedCallback() {
         @Override
         public void onBridgeStateUpdated(Bridge bridge, BridgeStateUpdatedEvent bridgeStateUpdatedEvent) {
-            Log.i(TAG, "Bridge state updated event: " + bridgeStateUpdatedEvent);
-
+            Log.d(TAG, "Bridge state updated event: " + bridgeStateUpdatedEvent);
             switch (bridgeStateUpdatedEvent) {
                 case INITIALIZED:
                     // The bridge state was fully initialized for the first time.
                     // It is now safe to perform operations on the bridge state.
                     updateUI(UIState.Connected, "Connected!");
-                    // Log.i("Bridge Info", bridge.getInfo().toString());
+                    // Log.d("Bridge Info", bridge.getInfo().toString());
                     ipAddress = bridge.getBridgeConfiguration().getNetworkConfiguration().getIpAddress();
                     userName = bridge.getBridgeConnection(BridgeConnectionType.LOCAL).getConnectionOptions().getUserName();
                     String userUrl = "http://".concat(ipAddress).concat("/api/").concat(userName).concat("/");
                     onBridgeInitialized(userUrl);
-                    Log.i("Bridge Ip", ipAddress);
-                    Log.i("Bridge UserName", userName);
+                    Log.d("Bridge Ip", ipAddress);
+                    Log.d("UserName", userName);
                     break;
-
-                case LIGHTS_AND_GROUPS:
-                    // At least one light was updated.
-                    break;
-
                 default:
                     break;
             }
@@ -639,7 +607,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         String bridgeIp = bridgeDiscoveryResults.get(i).getIP();
-        Log.i("Ip Address", bridgeIp);
+        Log.d("Ip Address", bridgeIp);
         bridgeIP.setText(bridgeIp);
         connectToBridge(bridgeIp);
     }
@@ -650,7 +618,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         if (view == hueAutoConnect) {
 
             startBridgeDiscovery();
-            Log.i("in hueAuto", "rediscovering");
+            Log.d("in hueAuto", "rediscovering");
         }
     }
 
@@ -658,7 +626,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "Status: " + status);
+                Log.d(TAG, "Status: " + status);
                 statusTextView.setText(status);
                 bridgeDiscoveryListView.setVisibility(View.GONE);
                 pushlinkImage.setVisibility(View.GONE);

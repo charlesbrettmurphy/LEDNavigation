@@ -2,35 +2,34 @@ package brett.lednavigation;
 
 import android.content.Context;
 import android.os.Bundle;
-
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * A fragment representing a list of Items.
- * <p/>
+ * This fragment displays a list of Groups configured on the bridge. The first item in the list allows you
+ * to configure a new Group and all items below it contain a custom view with the name of the group,
+ * the lights contained in the group, a switch to toggle on off and a color button to configure color changes
+ * <p>
+ * {@link GroupsContent} holds the data model which is refreshed when the fragment is refreshed
+ * {@link GroupsRecyclerViewAdapter} binds the data and returns the inflated view
+ * <p>
  * Activities containing this fragment MUST implement the {@link OnListGroupsFragmentInteractionListener}
  * interface.
  */
 public class GroupsFragment extends Fragment {
-    private static final String debugTag = "GroupsFragment";
+    private final String debugTag = "GroupsFragment";
     private static final String paramTag = "userUrl";
-    private String userURL ="";
-    private int mColumnCount = 1;
-    private String response="";
-    private OnListGroupsFragmentInteractionListener mListener;
+    private String response = "";
+    private OnListGroupsFragmentInteractionListener listener;
     private GroupsContent groupsContent = new GroupsContent();
 
     /**
@@ -39,7 +38,6 @@ public class GroupsFragment extends Fragment {
      */
     public GroupsFragment() {
     }
-
 
 
     public static GroupsFragment newInstance(String userUrl) {
@@ -55,38 +53,38 @@ public class GroupsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         CheckConnectivity checkConnectivity = new CheckConnectivity(getActivity());
 
-        if(checkConnectivity.checkWifiOnAndConnected()) {
+        if (checkConnectivity.checkWifiOnAndConnected()) {
             if (getArguments() != null) {
-                userURL = getArguments().getString(paramTag);
+                String userURL = getArguments().getString(paramTag);
                 BridgeCall bridgeCall = new BridgeCall();
                 BuildURL buildURL = new BuildURL(userURL);
                 userURL = buildURL.getAllGroups();
                 try {
                     //TODO: recode this properly using an interface so its not blocking the ui thread.
                     response = bridgeCall.execute(userURL, "GET").get();
-                    Log.i(debugTag, response);
+                    Log.d(debugTag, response);
                 } catch (Exception e) {
-                    Log.i(debugTag, e.toString());
+                    Log.d(debugTag, e.toString());
                 }
                 try {
                     JSONObject jsonReader = new JSONObject(response);
-                    Log.i(debugTag, jsonReader.toString());
+                    Log.d(debugTag, jsonReader.toString());
                     Boolean hasMoreObjects = true;
                     int i = 1;
                     while (hasMoreObjects) {
                         if (jsonReader.has(Integer.toString(i))) {
                             String parsedJSON = jsonReader.getJSONObject(Integer.toString(i)).toString();
-                            Log.i(debugTag, parsedJSON);
+                            Log.d(debugTag, parsedJSON);
                             groupsContent.createItem(jsonReader.getJSONObject(Integer.toString(i)), i);
-                            Log.i(debugTag, Integer.toString(GroupsContent.items.get(i).id));
-                            Log.i(debugTag, GroupsContent.items.get(i).name);
+                            Log.d(debugTag, Integer.toString(GroupsContent.items.get(i).id));
+                            Log.d(debugTag, GroupsContent.items.get(i).name);
                             i++;
                         } else {
                             hasMoreObjects = false;
                         }
                     }
                 } catch (JSONException e) {
-                    Log.i(debugTag, e.toString());
+                    Log.d(debugTag, e.toString());
                 }
             }
 
@@ -94,20 +92,14 @@ public class GroupsFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.groups_fragment_item_list, container, false);
-       // MainActivity.setActionBarTitle("Your title");
-        // Set the adapter
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-            recyclerView.setAdapter(new GroupsRecyclerViewAdapter(GroupsContent.items, mListener));
+            recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            recyclerView.setAdapter(new GroupsRecyclerViewAdapter(GroupsContent.items, listener));
         }
         return view;
     }
@@ -117,7 +109,7 @@ public class GroupsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnListGroupsFragmentInteractionListener) {
-            mListener = (OnListGroupsFragmentInteractionListener) context;
+            listener = (OnListGroupsFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                                                + " must implement OnListFragmentInteractionListener");
@@ -128,24 +120,18 @@ public class GroupsFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         GroupsContent.items.clear();
-        mListener = null;
+        listener = null;
     }
 
     /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
+     *
      */
     public interface OnListGroupsFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onListGroupsFragmentInteraction(GroupsContent.GroupItem item); //to pass the whole GroupItem
-        void onListGroupsFragmentInteraction(String anyOn, boolean isOn, int id);//to pass if any lights are on in the group
-        void onListGroupsFragmentInteraction( int id); //to pass the id of the item clicked
+        void onGroupsColorButtonPressed(GroupsContent.GroupItem item); //to pass the whole GroupItem
+
+        void onGroupsSwitchFlipped(String anyOn, boolean isOn, int id);//to pass if any lights are on in the group
+
+        void onCreateNewGroup(int id); //to pass the id of the item clicked
 
     }
 }
