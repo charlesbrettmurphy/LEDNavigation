@@ -70,8 +70,8 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     boolean rgbSwitch = false;
     GradientDrawable background;
     View backgroundView;
-    Bitmap sowilologobit;
-    ImageView sowiloimageview;
+    Bitmap sowiloLogoBitmap;
+    ImageView sowiloImageView;
     TextView bridgeIP;
     String userName;
     String ipAddress;
@@ -91,7 +91,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     // UI elements
     private TextView statusTextView;
     private ListView bridgeDiscoveryListView;
-    private View pushlinkImage;
+    private View pushLinkImage;
     private Button hueAutoConnect;
 
     enum UIState {
@@ -148,13 +148,13 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
         rescanButton.setVisibility(View.INVISIBLE);
 
 
-        sowiloimageview = view.findViewById(R.id.sowiloLogo);
-        sowiloimageview.setDrawingCacheEnabled(true);
+        sowiloImageView = view.findViewById(R.id.sowiloLogo);
+        sowiloImageView.setDrawingCacheEnabled(true);
         bridgeDiscoveryListView = view.findViewById(R.id.bridge_discovery_result_list);
         bridgeDiscoveryListView.setOnItemClickListener(this);
         hueAutoConnect = view.findViewById(R.id.hueAutoConnect);
         statusTextView = view.findViewById(R.id.statusTextView);
-        pushlinkImage = view.findViewById(R.id.pushlink_image);
+        pushLinkImage = view.findViewById(R.id.pushlink_image);
         bridgeIP = view.findViewById(R.id.bridgeIP);
 
         if (!mqttOn) {
@@ -163,17 +163,17 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
             changeBrokerIP.setVisibility(View.GONE);
             enterPort.setVisibility(View.GONE);
         }
-
+        //load logo
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeResource(getResources(), R.drawable.sowilo, options);
-        sowilologobit = decodeSampledBitmapFromResource(getResources(), R.drawable.sowilo, 600, 200);
-        sowiloimageview.setImageBitmap(sowilologobit);
+        sowiloLogoBitmap = decodeSampledBitmapFromResource(getResources(), R.drawable.sowilo, 600, 200);
+        sowiloImageView.setImageBitmap(sowiloLogoBitmap);
         backgroundView = this.getView();
-        //  pictureThread = new PictureThread(sowiloimageview, sowilologobit);
-        // pictureThread.start();
-        sowiloimageview.setAlpha(0f);
-        sowiloimageview.animate().alpha(1f).setDuration(3000);
+        sowiloImageView.setAlpha(0f);
+        sowiloImageView.animate().alpha(1f).setDuration(3000);
+
+        //load splash screen animation
         gradientColor = new int[6];
         delay = 30; // milliseconds between callbacks
         handler.postDelayed(new Runnable() {
@@ -248,7 +248,6 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
                     startBridgeDiscovery();
                 } else {
                     connectToBridge(bridgeIp);
-
                 }
             } else {
                 statusTextView.setText("1. Please Connect To A WiFi Network \n 2. Press Auto-Connect");
@@ -256,7 +255,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
 
         }
 
-
+//
         hueAutoConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -351,7 +350,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
     //TODO: In settings, allow user to set the variable change.
     public void colorCycle(int change) {
 
-        if (rgbSwitch) {
+        if (rgbSwitch==true) {
             redValue = redValue + change;
             if (redValue >= 255) {
                 redValue = 255;
@@ -368,7 +367,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
             }
         }
 
-        if (rgbSwitch) {
+        if (rgbSwitch==false) {
             redValue = redValue - change;
             if (redValue <= 0) {
                 redValue = 0;
@@ -628,7 +627,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
                 Log.d(TAG, "Status: " + status);
                 statusTextView.setText(status);
                 bridgeDiscoveryListView.setVisibility(View.GONE);
-                pushlinkImage.setVisibility(View.GONE);
+                pushLinkImage.setVisibility(View.GONE);
                 hueAutoConnect.setVisibility(View.GONE);
 
                 switch (state) {
@@ -650,7 +649,7 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
                         break;
                     case Pushlinking:
                         bridgeIP.setVisibility(View.VISIBLE);
-                        pushlinkImage.setVisibility(View.VISIBLE);
+                        pushLinkImage.setVisibility(View.VISIBLE);
                         hueAutoConnect.setVisibility(View.VISIBLE);
                         break;
                     case Connected:
