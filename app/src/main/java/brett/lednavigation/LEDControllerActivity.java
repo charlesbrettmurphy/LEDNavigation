@@ -23,7 +23,7 @@ import org.json.JSONObject;
  * The proper url for the relevant resources is constructed from data passed through
  * onColorButtonPressed and onGroupColorButtonPressed and passed to this activity
  */
-//TODO: Clean up this activity so its not such a god object, move calculations to separate class.
+//TODO: Clean up this activity so its less of a god object, move some calculations to separate class.
 //TODO: Create new git branch for features that make use of the Silicon Lab Gateway and remove from production branch
 //TODO: Create resource strings for translation
 public class LEDControllerActivity extends AppCompatActivity {
@@ -59,8 +59,6 @@ public class LEDControllerActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         getDelegate().onStop();
-        if (isLooping)
-            colorLoop(!isLooping); //ignore this warning. this is not the case.
     }
 
     @Override
@@ -119,7 +117,6 @@ public class LEDControllerActivity extends AppCompatActivity {
         Log.d("BridgeBuilder", bridgeBuilderUrl);
 
         //Check to see if dev mode is enabled to show MQTT UI elements
-
         //TODO: New dev branch and remove from these features from production branch
 
         protocolSwitch.setOnClickListener(new ToggleButton.OnClickListener() {
@@ -210,12 +207,10 @@ public class LEDControllerActivity extends AppCompatActivity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
             }
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // TODO Auto-generated method stub
                 // backgroundView.invalidate();
                 updateUI(progress, "greenValue");
 
@@ -238,7 +233,7 @@ public class LEDControllerActivity extends AppCompatActivity {
                         colorLoopButton.setText("Stop");
                     } else {
                         isLooping = false;
-                        colorLoop(isLooping);
+                        colorLoop(false);
                         colorLoopButton.setText("Color Loop");
                     }
                 }
@@ -354,7 +349,7 @@ public class LEDControllerActivity extends AppCompatActivity {
      * This method adjusts the light animation properties corresponding to each slider
      * Will take the changed value and update the UI gradient drawable used to animate the light
      */
-    //TODO: Enumerate changedValue so we arent doing string comparison, and look at other ways to improve performance
+    //TODO: Enumerate changedValue so we aren't doing string comparison, and look at other ways to improve performance
     private void updateUI(int progress, String changedValue) {
         switch (changedValue) {
             case "redValue":
@@ -466,13 +461,13 @@ public class LEDControllerActivity extends AppCompatActivity {
                     String hue = Integer.toHexString(Math.round(hueSatBright[0]));
                     String sat = Integer.toHexString(Math.round(hueSatBright[1]));
                     Log.d("Using Connection: ", "MQTT ON");
-                    String lvlmsg = "{\"commands\":[{\"command\":\"zcl level-control o-mv-to-level " + "0x" + lvl + " 0\"},{\"command\":\"plugin device-table send {000B57FFFE1731C1} 1\"}]}";
-                    byte[] lvlmsgBytes = lvlmsg.getBytes();
-                    MqttMessage lvlpayload = new MqttMessage();
-                    lvlpayload.setPayload(lvlmsgBytes);
+                    String lvlMsg = "{\"commands\":[{\"command\":\"zcl level-control o-mv-to-level " + "0x" + lvl + " 0\"},{\"command\":\"plugin device-table send {000B57FFFE1731C1} 1\"}]}";
+                    byte[] lvlMsgBytes = lvlMsg.getBytes();
+                    MqttMessage lvlPayload = new MqttMessage();
+                    lvlPayload.setPayload(lvlMsgBytes);
                     try {
-                        client.publish("gw/0022A30000170948/commands", lvlpayload);
-                        Log.d("Payload: ", lvlmsg);
+                        client.publish("gw/0022A30000170948/commands", lvlPayload);
+                        Log.d("Payload: ", lvlMsg);
                     } catch (MqttException e) {
                         Log.d("Mqtt Error", e.toString());
                     }
@@ -493,8 +488,8 @@ public class LEDControllerActivity extends AppCompatActivity {
 
     //TODO: Move this to separate development branch
     /* For dev with Silicon Labs Gateway only
-     * Loads a file containing IP settings for the MQTTbroker.
-     * Settings can be entered from the MainActivity when in mqtt mode
+     * Loads a file containing IP settings for the MQTTBroker.
+     * Settings can be entered from the MainActivity when in MQTT mode
      *
 
     public String loadLastUsedIP() {
@@ -532,7 +527,7 @@ public class LEDControllerActivity extends AppCompatActivity {
      * to 5000ms, sending a new change command, and then using the script for the oscilloscope
      * to automate data capture every someValue x and executing this script after (someValue x)/2 time
      * has passed. Keep in mind that bridge calls typically take~50ms to complete and the bridge
-     * throttles commands to about 100ms so commands will desync after awhile.
+     * throttles commands to about 100ms so commands will de sync after awhile.
      * Not perfect but way faster than manually collecting the data.
      * <p>
      * In the future, it will probably best to have this script running on the machine with scopeX
@@ -540,7 +535,7 @@ public class LEDControllerActivity extends AppCompatActivity {
 
 /*
     private static class HTTPColorCycle extends AsyncTask<Integer, Integer, String> {
-        String statusmsg;
+        String statusMsg;
         URL url;
         HttpURLConnection urlConnection;
         InputStream in;
@@ -586,7 +581,7 @@ public class LEDControllerActivity extends AppCompatActivity {
                 urlConnection.setRequestMethod("PUT");
                 OutputStream outputStream = urlConnection.getOutputStream();
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                Log.d("JSON in HTTPColorCyle", jsonObject.toString());
+                Log.d("JSON in HTTPColorCycle", jsonObject.toString());
                 //Log.d("URL in Async", LIGHT_STATE_URL4);
                 writer.write(jsonObject.toString());
                 writer.close();
@@ -597,25 +592,25 @@ public class LEDControllerActivity extends AppCompatActivity {
                 Log.d("Http Response", response);
             } catch (UnsupportedEncodingException e) {
                 Log.d("EncodingNotSupported", e.toString());
-                statusmsg = "Encoding Not Supported-OutputStreamwriter UTF-8 " + e.toString();
+                statusMsg = "Encoding Not Supported-OutputStreamWriter UTF-8 " + e.toString();
             } catch (MalformedURLException e) {
                 Log.d("MalformedURLException", e.toString());
-                statusmsg = "MalformedURLException in URL " + e.toString();
+                statusMsg = "MalformedURLException in URL " + e.toString();
 
             } catch (IllegalStateException e) {
                 Log.d("IllegalStateException", e.toString());
-                statusmsg = "IllegalStateException in urlConnection Object " + e.toString();
+                statusMsg = "IllegalStateException in urlConnection Object " + e.toString();
 
             } catch (NullPointerException e) {
                 Log.d("NullPointerException", e.toString());
-                statusmsg = "NullPointerException in urlConnection Object " + e.toString();
+                statusMsg = "NullPointerException in urlConnection Object " + e.toString();
 
             } catch (ProtocolException e) {
-                Log.d("ProtcolException", e.toString());
-                statusmsg = "ProtocolException Protocol not supported " + e.toString();
+                Log.d("ProtocolException", e.toString());
+                statusMsg = "ProtocolException Protocol not supported " + e.toString();
             } catch (IOException e) {
                 Log.d("IOException", e.toString());
-                statusmsg = "IOException in write function " + e.toString();
+                statusMsg = "IOException in write function " + e.toString();
 
             } finally {
                 urlConnection.disconnect();

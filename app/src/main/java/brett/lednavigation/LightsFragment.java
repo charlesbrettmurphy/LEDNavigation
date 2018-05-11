@@ -161,11 +161,13 @@ public class LightsFragment extends Fragment implements BridgeCall.onBridgeRespo
 
 
     public interface OnListLightsFragmentInteractionListener {
+        //for light interaction
+        void onColorButtonPressed(LightsContent.LightItem item);
 
-        void onColorButtonPressed(LightsContent.LightItem item); //for light interaction
+        //for on Switch interaction
+        void onSwitchFlipped(String on, boolean isOn, int id);
 
-        void onSwitchFlipped(String on, boolean isOn, int id); //for on Switch interaction
-
-        void onSearchPressed(int id); // for new light search
+        // for new light search
+        void onSearchPressed(int id);
     }
 }

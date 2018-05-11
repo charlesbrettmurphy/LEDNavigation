@@ -52,7 +52,7 @@ import java.util.List;
  * to handle interaction events.
  */
 public class SplashScreen extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener {
-    // TODO: Refactor to make this cleaner and more modular.
+    // TODO: Refactor to make this cleaner and more modular. Bit of a god Fragment
 
     private static final String ARG_PARAM1 = "uri";
     private String gatewayURL;
@@ -338,9 +338,8 @@ public class SplashScreen extends Fragment implements View.OnClickListener, Adap
 
     }
 
-    /**
-     * changes radius values for light animation gradient
-     */
+    //changes radius values for light animation gradient
+
     public int returnGradientRadius(int brightValue) {
         int radius = 500;
         if (brightValue * 6 < radius)
